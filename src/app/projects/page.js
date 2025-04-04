@@ -14,8 +14,10 @@ export default function ProjectsPage() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await fetch('https://skill-match-api-mock.onrender.com/projects');
-        if (!response.ok) throw new Error('プロジェクトの取得に失敗しました');
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/project`
+        );
+        if (!response.ok) throw new Error("プロジェクトの取得に失敗しました");
         const data = await response.json();
         setProjects(data);
       } catch (err) {
@@ -62,7 +64,9 @@ export default function ProjectsPage() {
             </p>
           </div>
           <Button
-            onClick={() => {/* 新規プロジェクト作成画面へ遷移 */}}
+            onClick={() => {
+              /* 新規プロジェクト作成画面へ遷移 */
+            }}
             className="bg-blue-600 hover:bg-blue-700"
           >
             新規プロジェクト作成
@@ -71,7 +75,7 @@ export default function ProjectsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <Card 
+            <Card
               key={project.id}
               className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
               onClick={() => router.push(`/projects/${project.id}`)}
@@ -86,12 +90,14 @@ export default function ProjectsPage() {
                       {project.description}
                     </p>
                   </div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    project.status === 'active' 
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {project.status === 'active' ? '進行中' : '完了'}
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      project.status === "active"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {project.status === "active" ? "進行中" : "完了"}
                   </span>
                 </div>
 
@@ -103,9 +109,12 @@ export default function ProjectsPage() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">メンバー</p>
+                    <p className="text-sm font-medium text-gray-500">
+                      メンバー
+                    </p>
                     <p className="mt-1 text-sm text-gray-900">
-                      {project.members?.length || 0} / {project.required_members}名
+                      {project.members?.length || 0} /{" "}
+                      {project.required_members}名
                     </p>
                   </div>
                 </div>
@@ -114,8 +123,8 @@ export default function ProjectsPage() {
                   <p className="text-sm font-medium text-gray-500">進捗</p>
                   <div className="mt-1">
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
                         style={{ width: `${project.progress}%` }}
                       ></div>
                     </div>
