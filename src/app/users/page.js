@@ -39,6 +39,28 @@ export default function UsersPage() {
     }
   };
 
+  const deleteUser = async (userId) => {
+    if (!confirm('このユーザーを削除してもよろしいですか？')) return;
+    
+    try {
+      const response = await fetch(`https://skill-match-api-mock.onrender.com/users/${userId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) throw new Error('ユーザーの削除に失敗しました');
+      
+      setMessage({ type: 'success', text: 'ユーザーを削除しました！' });
+      fetchUsers(); // ユーザー一覧を更新
+      
+      setTimeout(() => {
+        setMessage({ type: '', text: '' });
+      }, 3000);
+      
+    } catch (error) {
+      setMessage({ type: 'error', text: error.message });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -94,193 +116,224 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">ユーザー管理</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            エンジニアのスキル情報を登録・管理できます
-          </p>
+          <Link href="/" className="text-blue-600 hover:underline">
+            ホームに戻る
+          </Link>
         </div>
 
-        <div className="space-y-8">
-          {/* ユーザー登録フォームトグルボタン */}
-          <div className="flex justify-end">
-            <Button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {showForm ? 'フォームを閉じる' : '新しいユーザーを登録'}
-            </Button>
+        <Button
+          onClick={() => setShowForm(!showForm)}
+          className="mb-6 bg-blue-600 hover:bg-blue-700"
+        >
+          {showForm ? 'フォームを閉じる' : '新しいユーザーを登録'}
+        </Button>
+
+        {message.text && (
+          <div className={`mb-6 p-4 rounded ${
+            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}>
+            {message.text}
           </div>
+        )}
 
-          {/* メッセージ表示 */}
-          {message.text && (
-            <div className={`rounded-lg p-4 ${
-              message.type === 'success' 
-                ? 'bg-green-50 text-green-700 border border-green-200' 
-                : 'bg-red-50 text-red-700 border border-red-200'
-            }`}>
-              {message.text}
-            </div>
-          )}
+        {showForm && (
+          <Card className="mb-8 p-6">
+            <h2 className="text-xl font-semibold mb-6">新規ユーザー登録</h2>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="name">名前</Label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full mt-1 px-3 py-2 border rounded-md"
+                  />
+                </div>
 
-          {/* ユーザー登録フォーム */}
-          {showForm && (
-            <Card className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                  新規ユーザー登録
-                </h2>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* 基本情報 */}
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="name" className="text-gray-700">
-                          名前
-                        </Label>
-                        <input
-                          id="name"
-                          name="name"
-                          type="text"
-                          required
-                          value={formData.name}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="email" className="text-gray-700">
-                          メールアドレス
-                        </Label>
-                        <input
-                          id="email"
-                          name="email"
-                          type="email"
-                          required
-                          value={formData.email}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="engineer_type_id" className="text-gray-700">
-                          エンジニアタイプ
-                        </Label>
-                        <select
-                          id="engineer_type_id"
-                          name="engineer_type_id"
-                          value={formData.engineer_type_id}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        >
-                          <option value="1">フロントエンドエンジニア</option>
-                          <option value="2">バックエンドエンジニア</option>
-                          <option value="3">フルスタックエンジニア</option>
-                          <option value="4">インフラエンジニア</option>
-                          <option value="5">データエンジニア</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* スキル評価 */}
-                    <div className="space-y-4">
-                      {Object.entries({
-                        technical_skill: "技術スキル",
-                        problem_solving_ability: "問題解決力",
-                        communication_skill: "コミュニケーション",
-                        security_awareness: "セキュリティ意識",
-                        leadership_and_collaboration: "リーダーシップと協調性",
-                        learning_and_adaptability: "学習力と適応力"
-                      }).map(([key, label]) => (
-                        <div key={key}>
-                          <Label htmlFor={key} className="text-gray-700 flex justify-between">
-                            <span>{label}</span>
-                            <span className="text-blue-600">{formData[key]}</span>
-                          </Label>
-                          <input
-                            id={key}
-                            name={key}
-                            type="range"
-                            min="1"
-                            max="5"
-                            value={formData[key]}
-                            onChange={handleChange}
-                            className="mt-2 w-full accent-blue-600"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button
-                      type="submit"
-                      disabled={isLoading}
-                      className="bg-blue-600 hover:bg-blue-700 text-white w-full md:w-auto"
-                    >
-                      {isLoading ? "登録中..." : "登録する"}
-                    </Button>
-                  </div>
-                </form>
+                <div>
+                  <Label htmlFor="email">メールアドレス</Label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full mt-1 px-3 py-2 border rounded-md"
+                  />
+                </div>
               </div>
-            </Card>
-          )}
 
-          {/* ユーザー一覧 */}
-          <Card className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                登録済みユーザー一覧
-              </h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        名前
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        メール
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        技術力
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        問題解決力
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        コミュニケーション
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {users.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {user.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.email}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.technical_skill}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.problem_solving_ability}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.communication_skill}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="technical_skill">
+                    技術スキル: {formData.technical_skill}
+                  </Label>
+                  <input
+                    id="technical_skill"
+                    name="technical_skill"
+                    type="range"
+                    min="1"
+                    max="5"
+                    value={formData.technical_skill}
+                    onChange={handleChange}
+                    className="w-full mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="problem_solving_ability">
+                    問題解決力: {formData.problem_solving_ability}
+                  </Label>
+                  <input
+                    id="problem_solving_ability"
+                    name="problem_solving_ability"
+                    type="range"
+                    min="1"
+                    max="5"
+                    value={formData.problem_solving_ability}
+                    onChange={handleChange}
+                    className="w-full mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="communication_skill">
+                    コミュニケーション: {formData.communication_skill}
+                  </Label>
+                  <input
+                    id="communication_skill"
+                    name="communication_skill"
+                    type="range"
+                    min="1"
+                    max="5"
+                    value={formData.communication_skill}
+                    onChange={handleChange}
+                    className="w-full mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="security_awareness">
+                    セキュリティ意識: {formData.security_awareness}
+                  </Label>
+                  <input
+                    id="security_awareness"
+                    name="security_awareness"
+                    type="range"
+                    min="1"
+                    max="5"
+                    value={formData.security_awareness}
+                    onChange={handleChange}
+                    className="w-full mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="leadership_and_collaboration">
+                    リーダーシップと協調性: {formData.leadership_and_collaboration}
+                  </Label>
+                  <input
+                    id="leadership_and_collaboration"
+                    name="leadership_and_collaboration"
+                    type="range"
+                    min="1"
+                    max="5"
+                    value={formData.leadership_and_collaboration}
+                    onChange={handleChange}
+                    className="w-full mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="learning_and_adaptability">
+                    学習力と適応力: {formData.learning_and_adaptability}
+                  </Label>
+                  <input
+                    id="learning_and_adaptability"
+                    name="learning_and_adaptability"
+                    type="range"
+                    min="1"
+                    max="5"
+                    value={formData.learning_and_adaptability}
+                    onChange={handleChange}
+                    className="w-full mt-2"
+                  />
+                </div>
               </div>
-            </div>
+
+              <div>
+                <Label htmlFor="engineer_type_id">エンジニアタイプ</Label>
+                <select
+                  id="engineer_type_id"
+                  name="engineer_type_id"
+                  value={formData.engineer_type_id}
+                  onChange={handleChange}
+                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                >
+                  <option value="1">フロントエンドエンジニア</option>
+                  <option value="2">バックエンドエンジニア</option>
+                  <option value="3">フルスタックエンジニア</option>
+                  <option value="4">インフラエンジニア</option>
+                  <option value="5">データエンジニア</option>
+                </select>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                {isLoading ? "登録中..." : "登録する"}
+              </Button>
+            </form>
           </Card>
-        </div>
+        )}
+
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-6">登録済みユーザー一覧</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名前</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メール</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">技術力</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">問題解決力</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">コミュニケーション</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.map((user) => (
+                  <tr key={user.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.technical_skill}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.problem_solving_ability}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.communication_skill}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Button
+                        onClick={() => deleteUser(user.id)}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        削除
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       </div>
     </div>
   );
