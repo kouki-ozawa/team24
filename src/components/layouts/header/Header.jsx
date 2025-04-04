@@ -14,7 +14,7 @@ export default function Header() {
   }
 
   const navigation = [
-    { name: "スキル診断", href: "/skill-match" },
+    { name: "スキル診断", href: "/questions" },
     { name: "ユーザー管理", href: "/users" },
   ];
 
@@ -28,7 +28,10 @@ export default function Header() {
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
-            <Link href="/skill-match" className="text-xl font-bold text-gray-900">
+            <Link
+              href="/skill-match"
+              className="text-xl font-bold text-gray-900"
+            >
               SkillMatch
             </Link>
             <div className="ml-10 hidden space-x-4 sm:flex">

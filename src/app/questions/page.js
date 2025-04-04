@@ -22,7 +22,7 @@ const icons = {
   problem_solving_ability: <Brain className="w-6 h-6" />,
   communication_skill: <Users className="w-6 h-6" />,
   security_awareness: <Shield className="w-6 h-6" />,
-  learning_and_adaptability: <Target className="w-6 h-6" />,
+  leadership_and_collaboration: <Target className="w-6 h-6" />,
 };
 
 // 選択肢
@@ -42,7 +42,7 @@ export default function Home() {
     problem_solving_ability: 1,
     communication_skill: 1,
     security_awareness: 1,
-    learning_and_adaptability: 1,
+    leadership_and_collaboration: 1,
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,8 +54,9 @@ export default function Home() {
     const fetchQuestions = async () => {
       try {
         const response = await fetch(
-          "https://skill-match-api-mock.onrender.com/questions"
+          `${process.env.NEXT_PUBLIC_API_URL}/questions`
         );
+        console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
         if (!response.ok) {
           throw new Error("Failed to fetch questions");
         }
@@ -114,7 +115,7 @@ export default function Home() {
 
   // 次の質問に進めるかどうかを判断
   const canProceed = (index) => {
-    return answers[questions[index]?.id] !== undefined;
+    return answers[questions[index]?.Question_ID] !== undefined;
   };
 
   // 診断結果を計算
@@ -126,7 +127,7 @@ export default function Home() {
 
     const newSkills = { ...userSkills };
     questions.forEach((question) => {
-      const answer = parseInt(answers[question.id]);
+      const answer = parseInt(answers[question.Question_ID]);
       Object.keys(newSkills).forEach((skill) => {
         if (question[skill]) {
           newSkills[skill] *= answer;
@@ -146,7 +147,7 @@ export default function Home() {
       problem_solving_ability: 1,
       communication_skill: 1,
       security_awareness: 1,
-      learning_and_adaptability: 1,
+      leadership_and_collaboration: 1,
     });
     setIsSubmitted(false);
     setCurrentQuestionIndex(0);
@@ -196,7 +197,7 @@ export default function Home() {
                 <button
                   key={index}
                   className={`w-3 h-3 rounded-full focus:outline-none ${
-                    answers[questions[index]?.id] !== undefined
+                    answers[questions[index]?.Question_ID] !== undefined
                       ? "bg-blue-600"
                       : index === currentQuestionIndex
                         ? "bg-blue-300"
@@ -208,7 +209,8 @@ export default function Home() {
                       index === 0 ||
                       Object.keys(answers).length >= index ||
                       (index > 0 &&
-                        answers[questions[index - 1]?.id] !== undefined);
+                        answers[questions[index - 1]?.Question_ID] !==
+                          undefined);
 
                     if (canJump) {
                       setCurrentQuestionIndex(index);
@@ -222,14 +224,14 @@ export default function Home() {
             <div className="relative overflow-hidden">
               {questions[currentQuestionIndex] && (
                 <Card
-                  key={questions[currentQuestionIndex].id}
+                  key={questions[currentQuestionIndex].Question_ID}
                   className={`p-6 ${transitionClass} transition-all duration-500 ease-in-out`}
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       {icons[Object.keys(icons)[currentQuestionIndex % 5]]}
                       <h2 className="text-xl font-semibold text-gray-800">
-                        {questions[currentQuestionIndex].text}
+                        {questions[currentQuestionIndex].Text}
                       </h2>
                     </div>
                     <span className="text-sm font-medium text-gray-500">
@@ -237,11 +239,11 @@ export default function Home() {
                     </span>
                   </div>
                   <RadioGroup
-                    value={answers[questions[currentQuestionIndex].id]}
+                    value={answers[questions[currentQuestionIndex].Question_ID]}
                     onValueChange={(value) => {
                       setAnswers((prev) => ({
                         ...prev,
-                        [questions[currentQuestionIndex].id]: value,
+                        [questions[currentQuestionIndex].Question_ID]: value,
                       }));
                     }}
                     className="space-y-3"
@@ -253,10 +255,10 @@ export default function Home() {
                       >
                         <RadioGroupItem
                           value={option.value}
-                          id={`${questions[currentQuestionIndex].id}-${option.value}`}
+                          id={`${questions[currentQuestionIndex].Question_ID}-${option.value}`}
                         />
                         <Label
-                          htmlFor={`${questions[currentQuestionIndex].id}-${option.value}`}
+                          htmlFor={`${questions[currentQuestionIndex].Question_ID}-${option.value}`}
                           className="w-full cursor-pointer"
                         >
                           {option.label}
@@ -328,7 +330,7 @@ export default function Home() {
               <div className="flex justify-between items-center">
                 <span className="font-medium">学習適応能力:</span>
                 <span className="text-lg">
-                  {userSkills.learning_and_adaptability}
+                  {userSkills.leadership_and_collaboration}
                 </span>
               </div>
             </div>
