@@ -10,7 +10,9 @@ export const useUser = (id) => {
 
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/${id}`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/user/${id}`
+        );
         console.log(res);
         if (!res.ok) throw new Error("ユーザー情報の取得に失敗しました");
         const data = await res.json();
