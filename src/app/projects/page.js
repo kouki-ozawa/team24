@@ -64,9 +64,7 @@ export default function ProjectsPage() {
             </p>
           </div>
           <Button
-            onClick={() => {
-              /* 新規プロジェクト作成画面へ遷移 */
-            }}
+            onClick={() => router.push('/projects/create')}
             className="bg-blue-600 hover:bg-blue-700"
           >
             新規プロジェクト作成

@@ -52,13 +52,14 @@ export default function Auth({ setUserId }) {
         localStorage.setItem("userId", userId);
         setUserId(userId);
         console.log("userId", userId);
-        router.push("/");
+        router.push("/dashboard");
       } else {
         alert("アカウント作成に成功しました。ログインしてください。");
         setIsLogin(true);
       }
     } catch (err) {
       setError(err.message);
+      console.error("認証エラー:", err);
     } finally {
       setIsLoading(false);
     }

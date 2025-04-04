@@ -7,7 +7,7 @@ export default function Footer() {
   const router = useRouter();
 
   // ログインページとユーザー登録ページではナビゲーションを表示しない
-  if (pathname === "/" || pathname === "/users") {
+  if (pathname === "/" || pathname === "/") {
     return null;
   }
 

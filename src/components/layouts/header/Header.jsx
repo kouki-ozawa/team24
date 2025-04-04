@@ -16,10 +16,14 @@ export default function Header() {
   const navigation = [
     { name: "スキル診断", href: "/questions" },
     { name: "ユーザー管理", href: "/users" },
+    { name: "プロジェクト管理", href: "/projects" },
   ];
 
   const handleLogout = () => {
-    // ここでログアウト処理を実装
+    // ローカルストレージからIDを消去
+    localStorage.removeItem('userId');  // もしくは使用しているキー名に応じて変更
+    
+    // ルートページへ遷移
     router.push("/");
   };
 
@@ -29,7 +33,7 @@ export default function Header() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link
-              href="/skill-match"
+              href="/dashboard"
               className="text-xl font-bold text-gray-900"
             >
               SkillMatch
