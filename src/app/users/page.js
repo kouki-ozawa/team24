@@ -129,7 +129,7 @@ export default function UsersPage() {
           onClick={() => setShowForm(!showForm)}
           className="mb-6 bg-blue-600 hover:bg-blue-700"
         >
-          {showForm ? 'フォームを閉じる' : '新しいユーザーを登録'}
+          {showForm ? 'フォームを閉じる' : '新しいユーザーを登録します'}
         </Button>
 
         {message.text && (
