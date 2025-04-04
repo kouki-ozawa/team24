@@ -51,6 +51,7 @@ export default function Auth({ setUserId }) {
         //本来はJWTトークンを保存するが、ここではuserIdを保存
         localStorage.setItem("userId", userId);
         setUserId(userId);
+        console.log("userId", userId);
         router.push("/");
       } else {
         alert("アカウント作成に成功しました。ログインしてください。");
