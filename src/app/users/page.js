@@ -5,20 +5,24 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import RequireAuth from "@/components/RequireAuth";
-import { ArrowLeft, PenSquare } from "lucide-react";
-import UserInfo from "@/components/UserInfo";
+import { ArrowLeft, PenSquare, LineChart, RefreshCw } from "lucide-react";
+import UserInfo from "@/components/user/UserInfo";
 
 export default function UserProfilePage() {
   const router = useRouter();
   const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // ローカルストレージからユーザーIDを取得
   useEffect(() => {
     try {
+      setLoading(true);
       const storedUserId = localStorage.getItem("userId");
       setUserId(storedUserId);
     } catch (error) {
       console.error("ローカルストレージアクセスエラー:", error);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -27,20 +31,13 @@ export default function UserProfilePage() {
     router.push("/dashboard");
   };
 
-  // 設定ページへ移動
-  const handleGoToSettings = () => {
-    if (userId) {
-      router.push(`/users/${userId}/settings`);
-    }
-  };
-
   // スキル診断ページへ移動
   const handleGoToSkillDiagnosis = () => {
     router.push("/questions");
   };
 
   const content = (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
       <Button
         variant="ghost"
         onClick={handleGoBack}
@@ -50,20 +47,15 @@ export default function UserProfilePage() {
         ダッシュボードに戻る
       </Button>
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">マイアカウント</h1>
-        {userId && (
-          <Button
-            onClick={handleGoToSettings}
-            className="flex items-center"
-          >
-            <PenSquare className="w-4 h-4 mr-2" />
-            設定
-          </Button>
-        )}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-0">マイアカウント</h1>
       </div>
 
-      {!userId ? (
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
+        </div>
+      ) : !userId ? (
         <Card className="p-8 text-center">
           <p className="text-gray-600">ログインしていません</p>
         </Card>
@@ -75,10 +67,28 @@ export default function UserProfilePage() {
           <div className="text-center mt-6">
             <Button 
               onClick={handleGoToSkillDiagnosis}
-              variant="outline"
-              className="bg-blue-50 hover:bg-blue-100"
+              className="flex items-center mx-auto bg-blue-600 hover:bg-blue-700 text-white transition-all"
             >
+              <LineChart className="w-4 h-4 mr-2" />
               スキル診断を受ける
+            </Button>
+            <p className="text-sm text-gray-500 mt-2">
+              スキル診断を受けて、あなたのスキルプロフィールを更新しましょう
+            </p>
+          </div>
+          
+          {/* プロジェクト推薦セクション */}
+          <div className="mt-10 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">あなたにおすすめのプロジェクト</h2>
+            <p className="text-gray-600 mb-4">
+              あなたのスキルプロファイルに基づいて、参加可能なプロジェクトを探索しましょう。
+            </p>
+            <Button
+              onClick={() => router.push('/projects')}
+              variant="outline"
+              className="bg-white hover:bg-gray-50"
+            >
+              プロジェクトを探す
             </Button>
           </div>
         </>
