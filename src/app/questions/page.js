@@ -43,14 +43,14 @@ export default function Home() {
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [userSkills, setUserSkills] = useState({
-    technical_skill: 1,
-    problem_solving_ability: 1,
-    communication_skill: 1,
-    leadership_and_collaboration: 1,
-    frontend_skill: 1,
-    backend_skill: 1,
-    infrastructure_skill: 1,
-    security_awareness: 1,
+    technical_skill: 1, // 技術力
+    problem_solving_ability: 1, // 問題解決力
+    communication_skill: 1, // コミュニケーション
+    leadership_and_collaboration: 1, // リーダーシップ
+    frontend_skill: 1, // フロントエンド
+    backend_skill: 1, // バックエンド
+    infrastructure_skill: 1, // インフラ
+    security_awareness: 1, // セキュリティ意識
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -296,8 +296,19 @@ export default function Home() {
                   <div key={skill}>
                     <div className="flex items-center mb-2">
                       {icons[skill]}
-                      <span className="ml-2 font-medium capitalize">
-                        {skill.replace(/_/g, " ")}
+                      <span className="ml-2 font-medium">
+                        {
+                          {
+                            technical_skill: "技術力",
+                            problem_solving_ability: "問題解決力",
+                            communication_skill: "コミュニケーション",
+                            leadership_and_collaboration: "リーダーシップ",
+                            frontend_skill: "フロントエンド",
+                            backend_skill: "バックエンド",
+                            infrastructure_skill: "インフラ",
+                            security_awareness: "セキュリティ意識",
+                          }[skill]
+                        }
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
