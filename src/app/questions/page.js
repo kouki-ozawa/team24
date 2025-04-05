@@ -15,14 +15,20 @@ import {
   Target,
   Save,
   User,
+  Layout,      // 追加: frontend_skill 用のアイコン
+  Server,      // 追加: backend_skill 用のアイコン
+  Cloud        // 追加: infrastructure_skill 用のアイコン
 } from "lucide-react";
 
 const icons = {
   technical_skill: <Code className="w-6 h-6" />,
   problem_solving_ability: <Brain className="w-6 h-6" />,
   communication_skill: <Users className="w-6 h-6" />,
-  security_awareness: <Shield className="w-6 h-6" />,
   leadership_and_collaboration: <Target className="w-6 h-6" />,
+  frontend_skill: <Layout className="w-6 h-6" />,
+  backend_skill: <Server className="w-6 h-6" />,
+  infrastructure_skill: <Cloud className="w-6 h-6" />,
+  security_awareness: <Shield className="w-6 h-6" />,
 };
 
 const options = [
@@ -40,8 +46,11 @@ export default function Home() {
     technical_skill: 1,
     problem_solving_ability: 1,
     communication_skill: 1,
-    security_awareness: 1,
     leadership_and_collaboration: 1,
+    frontend_skill: 1,
+    backend_skill: 1,
+    infrastructure_skill: 1,
+    security_awareness: 1,
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,14 +102,44 @@ export default function Home() {
       return;
     }
 
-    const newSkills = { ...userSkills };
+    // 基本値は0にして合計値を算出する
+    const newSkills = {
+      technical_skill: 0,
+      problem_solving_ability: 0,
+      communication_skill: 0,
+      leadership_and_collaboration: 0,
+      frontend_skill: 0,
+      backend_skill: 0,
+      infrastructure_skill: 0,
+      security_awareness: 0,
+    };
+
     questions.forEach((q) => {
-      const answer = parseInt(answers[q.Question_ID]);
-      Object.keys(newSkills).forEach((skill) => {
-        if (q[skill]) {
-          newSkills[skill] *= answer;
-        }
-      });
+      const answer = parseInt(answers[q.Question_ID], 10);
+      if (q.technical_skill) {
+        newSkills.technical_skill += answer;
+      }
+      if (q.problem_solving_ability) {
+        newSkills.problem_solving_ability += answer;
+      }
+      if (q.communication_skill) {
+        newSkills.communication_skill += answer;
+      }
+      if (q.leadership_and_collaboration) {
+        newSkills.leadership_and_collaboration += answer;
+      }
+      if (q.frontend_skill) {
+        newSkills.frontend_skill += answer;
+      }
+      if (q.backend_skill) {
+        newSkills.backend_skill += answer;
+      }
+      if (q.infrastructure_skill) {
+        newSkills.infrastructure_skill += answer;
+      }
+      if (q.security_awareness) {
+        newSkills.security_awareness += answer;
+      }
     });
 
     setUserSkills(newSkills);
@@ -116,8 +155,11 @@ export default function Home() {
       technical_skill: 1,
       problem_solving_ability: 1,
       communication_skill: 1,
-      security_awareness: 1,
       leadership_and_collaboration: 1,
+      frontend_skill: 1,
+      backend_skill: 1,
+      infrastructure_skill: 1,
+      security_awareness: 1,
     });
     setIsSubmitted(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -139,8 +181,11 @@ export default function Home() {
 
     setIsSaving(true);
     try {
-      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/${userId}`);
-      if (!userRes.ok) throw new Error("ユーザー情報の取得に失敗");
+      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/${userId}`);
+      if (!userRes.ok) {
+        console.error("GETエラー：ステータス", userRes.status);
+        throw new Error("ユーザー情報の取得に失敗");
+      }
       const userData = await userRes.json();
 
       const updatedUser = {
@@ -149,15 +194,22 @@ export default function Home() {
         last_assessment_date: new Date().toISOString(),
       };
 
-      const updateRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/${userId}`, {
+      console.log("Updated user data:", updatedUser);
+
+      const updateRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/${userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedUser),
       });
 
-      if (!updateRes.ok) throw new Error("保存失敗");
+      if (!updateRes.ok) {
+        const errorText = await updateRes.text();
+        console.error("PUTリクエスト失敗:", errorText);
+        throw new Error("保存失敗");
+      }
+
       alert("スキル診断結果を保存しました！");
-      router.push(`/users/${userId}`);
+      router.push(`/users`);
     } catch (error) {
       console.error(error);
       alert("保存に失敗しました。もう一度お試しください。");
