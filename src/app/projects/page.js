@@ -12,7 +12,7 @@ export default function ProjectListPage() {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
       {projects.map((project) => (
         <Link
-          href={`/projects/${project.id}?project_id=${project.id}`}
+          href={`/projects/${project.id}/manage`}
           key={project.id}
           className="block rounded-xl shadow-md p-4 transition hover:scale-105 bg-white border-t-4"
           style={{ borderTopColor: project.color || "#3b82f6" }} // default to blue-500
