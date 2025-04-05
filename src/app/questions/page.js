@@ -42,6 +42,7 @@ const options = [
 export default function Home() {
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
+  const [calculationDetails, setCalculationDetails] = useState([]);
   const [userSkills, setUserSkills] = useState({
     technical_skill: 1, // 技術力
     problem_solving_ability: 1, // 問題解決力
@@ -114,32 +115,59 @@ export default function Home() {
       security_awareness: 0,
     };
 
+    // 各スキルの最大値を計算
+    const maxSkillValues = {
+      technical_skill: 0,
+      problem_solving_ability: 0,
+      communication_skill: 0,
+      leadership_and_collaboration: 0,
+      frontend_skill: 0,
+      backend_skill: 0,
+      infrastructure_skill: 0,
+      security_awareness: 0,
+    };
+
     questions.forEach((q) => {
       const answer = parseInt(answers[q.Question_ID], 10);
+
+      // 各スキルに係数を掛けて加算
       if (q.technical_skill) {
-        newSkills.technical_skill += answer;
+        newSkills.technical_skill += answer * q.technical_skill;
+        maxSkillValues.technical_skill += 5 * q.technical_skill;
       }
       if (q.problem_solving_ability) {
-        newSkills.problem_solving_ability += answer;
+        newSkills.problem_solving_ability += answer * q.problem_solving_ability;
+        maxSkillValues.problem_solving_ability += 5 * q.problem_solving_ability;
       }
       if (q.communication_skill) {
-        newSkills.communication_skill += answer;
+        newSkills.communication_skill += answer * q.communication_skill;
+        maxSkillValues.communication_skill += 5 * q.communication_skill;
       }
       if (q.leadership_and_collaboration) {
-        newSkills.leadership_and_collaboration += answer;
+        newSkills.leadership_and_collaboration += answer * q.leadership_and_collaboration;
+        maxSkillValues.leadership_and_collaboration += 5 * q.leadership_and_collaboration;
       }
       if (q.frontend_skill) {
-        newSkills.frontend_skill += answer;
+        newSkills.frontend_skill += answer * q.frontend_skill;
+        maxSkillValues.frontend_skill += 5 * q.frontend_skill;
       }
       if (q.backend_skill) {
-        newSkills.backend_skill += answer;
+        newSkills.backend_skill += answer * q.backend_skill;
+        maxSkillValues.backend_skill += 5 * q.backend_skill;
       }
       if (q.infrastructure_skill) {
-        newSkills.infrastructure_skill += answer;
+        newSkills.infrastructure_skill += answer * q.infrastructure_skill;
+        maxSkillValues.infrastructure_skill += 5 * q.infrastructure_skill;
       }
       if (q.security_awareness) {
-        newSkills.security_awareness += answer;
+        newSkills.security_awareness += answer * q.security_awareness;
+        maxSkillValues.security_awareness += 5 * q.security_awareness;
       }
+    });
+
+    // スキル値を正規化してパーセンテージに変換
+    Object.keys(newSkills).forEach((skill) => {
+      newSkills[skill] = Math.min((newSkills[skill] / maxSkillValues[skill]) * 100, 100);
     });
 
     setUserSkills(newSkills);
@@ -310,17 +338,36 @@ export default function Home() {
                           }[skill]
                         }
                       </span>
+                      <span className="ml-auto text-sm text-gray-600">{Math.round(value)}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                       <div
                         className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
                         style={{
-                          width: `${Math.min(Math.max(Number(value), 0), 5) / 5 * 100}%`,
+                          width: `${value}%`,
                         }}
                       />
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <div className="mt-8">
+                <h3 className="text-xl font-semibold mb-4">計算詳細</h3>
+                <ul className="space-y-4">
+                  {calculationDetails.map((detail, index) => (
+                    <li key={index} className="bg-gray-100 p-4 rounded-lg">
+                      <p className="font-medium mb-2">{`質問 ${index + 1}: ${detail.question}`}</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        {detail.calculations.map((calc, calcIndex) => (
+                          <li key={calcIndex} className="text-sm text-gray-700">
+                            {calc}
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               <div className="mt-6 flex flex-col sm:flex-row gap-4">
