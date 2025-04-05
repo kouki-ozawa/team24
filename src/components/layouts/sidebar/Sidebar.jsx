@@ -10,6 +10,7 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
+  CircleUserRound,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,11 @@ export default function Sidebar() {
       href: "/projects",
       icon: <FolderKanban className="w-5 h-5" />,
     },
+    {
+      name: "ユーザー情報",
+      href: "/",
+      icon: <CircleUserRound className="w-5 h-5"/>
+    }
   ];
 
   return (
