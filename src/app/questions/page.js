@@ -246,6 +246,14 @@ export default function Home() {
     }
   };
 
+  // スキル値に応じた色を設定する関数
+  const getSkillColor = (value) => {
+    if (value >= 80) return "bg-green-500";
+    if (value >= 60) return "bg-blue-500";
+    if (value >= 40) return "bg-yellow-500";
+    return "bg-gray-400";
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -342,7 +350,7 @@ export default function Home() {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                       <div
-                        className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
+                        className={`h-2.5 rounded-full transition-all duration-500 ease-in-out ${getSkillColor(value)}`}
                         style={{
                           width: `${value}%`,
                         }}
