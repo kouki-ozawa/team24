@@ -59,6 +59,11 @@ export default function Sidebar() {
       href: "/projects",
       icon: <FolderKanban className="w-5 h-5" />,
     },
+    {
+      name: "ユーザー情報",
+      href: "/",
+      icon: <FolderKanban className="w-5 h-5"/>
+    }
   ];
 
   return (
