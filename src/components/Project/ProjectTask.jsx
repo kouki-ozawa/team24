@@ -18,33 +18,41 @@ export const ProjectTaskList = ({ projectId, tasks: initialTasks, onTasksChange 
   const handleAddTask = async (e) => {
     e.preventDefault();
     try {
+      const taskData = {
+        title: newTask.title,
+        description: newTask.description,
+        deadline: newTask.deadline || null,
+        project_id: projectId,
+        user_id: localStorage.getItem("user_id") || "string",
+        technical_skill: 0,
+        problem_solving_ability: 0,
+        communication_skill: 0,
+        security_awareness: 0,
+        leadership_and_collaboration: 0,
+        frontend_skill: 0,
+        backend_skill: 0,
+        infrastructure_skill: 0,
+        status: "string",
+        color: "#FFFFFF"
+      };
+
+      console.log("Adding task with data:", taskData);
       const res = await fetch(`https://skill-match-api-mongo.onrender.com/api/task`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          title: newTask.title,
-          description: newTask.description,
-          deadline: newTask.deadline,
-          project_id: projectId,
-          user_id: localStorage.getItem("user_id") || "string",
-          technical_skill: 0,
-          problem_solving_ability: 0,
-          communication_skill: 0,
-          security_awareness: 0,
-          leadership_and_collaboration: 0,
-          frontend_skill: 0,
-          backend_skill: 0,
-          infrastructure_skill: 0,
-          status: "string",
-          color: "#FFFFFF"
-        }),
+        body: JSON.stringify(taskData),
       });
 
       if (res.ok) {
         const addedTask = await res.json();
-        setTasks([...tasks, addedTask]);
+        console.log("Added task response:", addedTask);
+        const newTask = {
+          ...addedTask,
+          deadline: taskData.deadline
+        };
+        setTasks([...tasks, newTask]);
         setIsAddingTask(false);
         setNewTask({
           title: "",
@@ -52,7 +60,11 @@ export const ProjectTaskList = ({ projectId, tasks: initialTasks, onTasksChange 
           deadline: "",
           color: "#FFFFFF"
         });
-        if (onTasksChange) onTasksChange([...tasks, addedTask]);
+        if (onTasksChange) onTasksChange([...tasks, newTask]);
+      } else {
+        const errorData = await res.text();
+        console.error("タスクの追加に失敗しました - ステータス:", res.status);
+        console.error("エラーレスポンス:", errorData);
       }
     } catch (err) {
       console.error("タスクの追加に失敗しました:", err);
@@ -62,51 +74,55 @@ export const ProjectTaskList = ({ projectId, tasks: initialTasks, onTasksChange 
   const handleEditTask = (task) => {
     setEditingTaskId(task.id);
     setEditingTask({
+      _id: task.id,
       title: task.title,
       description: task.description,
       deadline: task.deadline || ""
     });
+    console.log("Editing task:", task);
   };
 
   const handleUpdateTask = async (taskId) => {
     try {
-      console.log("Updating task with ID:", taskId);
+      const taskData = {
+        _id: taskId,
+        title: editingTask.title,
+        description: editingTask.description,
+        deadline: editingTask.deadline || null,
+        project_id: projectId,
+        user_id: localStorage.getItem("user_id") || "string",
+        technical_skill: 0,
+        problem_solving_ability: 0,
+        communication_skill: 0,
+        security_awareness: 0,
+        leadership_and_collaboration: 0,
+        frontend_skill: 0,
+        backend_skill: 0,
+        infrastructure_skill: 0,
+        status: "string",
+        color: "#FFFFFF"
+      };
+
+      console.log("Updating task with data:", taskData);
       const res = await fetch(`https://skill-match-api-mongo.onrender.com/api/task/${taskId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          id: taskId,
-          title: editingTask.title,
-          description: editingTask.description,
-          deadline: editingTask.deadline,
-          project_id: projectId,
-          user_id: localStorage.getItem("user_id") || "string",
-          technical_skill: 0,
-          problem_solving_ability: 0,
-          communication_skill: 0,
-          security_awareness: 0,
-          leadership_and_collaboration: 0,
-          frontend_skill: 0,
-          backend_skill: 0,
-          infrastructure_skill: 0,
-          status: "string",
-          color: "#FFFFFF"
-        }),
+        body: JSON.stringify(taskData),
       });
 
       if (res.ok) {
         const updatedTask = await res.json();
         console.log("Updated task response:", updatedTask);
+        const updatedTaskWithDeadline = {
+          ...updatedTask,
+          id: taskId,
+          _id: taskId,
+          deadline: editingTask.deadline || null
+        };
         const newTasks = tasks.map(task => 
-          task.id === taskId ? { 
-            ...updatedTask,
-            id: taskId,
-            title: editingTask.title,
-            description: editingTask.description,
-            deadline: editingTask.deadline
-          } : task
+          task.id === taskId ? updatedTaskWithDeadline : task
         );
         setTasks(newTasks);
         setEditingTaskId(null);
@@ -116,7 +132,7 @@ export const ProjectTaskList = ({ projectId, tasks: initialTasks, onTasksChange 
         const errorData = await res.text();
         console.error("タスクの更新に失敗しました - ステータス:", res.status);
         console.error("エラーレスポンス:", errorData);
-        console.error("送信したデータ:", editingTask);
+        console.error("送信したデータ:", taskData);
         alert("タスクの更新に失敗しました。もう一度お試しください。");
       }
     } catch (err) {

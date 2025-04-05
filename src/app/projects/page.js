@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import useFetchProjects from "@/hooks/useFetchProject";
 
 const ITEMS_PER_PAGE = 9;
 const DEFAULT_EMPTY_PROJECTS = 9;
@@ -18,10 +17,44 @@ const ProgressTab = {
 
 export default function ProjectsPage() {
   const router = useRouter();
-
-  const { projects, loading, error, currentPage, totalPages, setCurrentPage } =
-    useFetchProjects();
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [activeTab, setActiveTab] = useState(ProgressTab.ALL);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/project`
+        );
+        if (!response.ok) throw new Error("プロジェクトの取得に失敗しました");
+        const data = await response.json();
+        // APIのレスポンスを現在のプロジェクト形式にマッピング
+        const mappedProjects = data.map((project) => ({
+          id: project.id,
+          name: project.title,
+          description: project.description,
+          start: project.start,
+          deadline: project.deadline,
+          required_members: project.required_members || null,
+          status: project.status || "active",
+          progress: project.progress || 0,
+          members: project.members || [],
+        }));
+        setProjects(mappedProjects);
+        setTotalPages(Math.ceil(mappedProjects.length / ITEMS_PER_PAGE));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   const filterProjectsByProgress = (projects) => {
     switch (activeTab) {
@@ -92,7 +125,7 @@ export default function ProjectsPage() {
           </Button>
         </div>
 
-        <div className="mb-6 flex space-x-4 border-b border-gray-200">
+        <div className="border-b border-gray-200 mb-8">
           <button
             onClick={() => setActiveTab(ProgressTab.ALL)}
             className={`pb-2 px-4 text-sm font-medium ${
@@ -148,7 +181,7 @@ export default function ProjectsPage() {
                 if (project.id) {
                   try {
                     const response = await fetch(
-                      `https://skill-match-api-mongo.onrender.com/api/project/${project.id}`
+                      `${process.env.NEXT_PUBLIC_API_URL}/project/${project.id}`
                     );
                     if (!response.ok)
                       throw new Error("プロジェクトの取得に失敗しました");
@@ -160,7 +193,7 @@ export default function ProjectsPage() {
                 }
               }}
             >
-              <div className="p-6 relative">
+              <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3
@@ -190,7 +223,7 @@ export default function ProjectsPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="space-y-4">
                   <div className="bg-gradient-to-br from-white to-gray-50/30 p-3 rounded-xl shadow-[0_2px_8px_rgb(0,0,0,0.02)] border border-gray-100/80 group-hover:border-gray-200/80 group-hover:shadow-[0_2px_8px_rgb(0,0,0,0.04)] transition-all duration-300">
                     <p className="text-sm font-medium text-gray-700 cursor-default">
                       期間
@@ -243,7 +276,7 @@ export default function ProjectsPage() {
                   </div>
                 </div>
 
-                <div>
+                <div className="mt-6">
                   <div className="flex justify-between items-center mb-3">
                     <p className="text-sm font-medium text-gray-700 cursor-default">
                       進捗
@@ -274,29 +307,27 @@ export default function ProjectsPage() {
           ))}
         </div>
 
-        {totalPages > 1 && (
-          <div className="mt-8 flex justify-center space-x-2">
-            <Button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 w-10 h-10 flex items-center justify-center"
-            >
-              <span className="text-2xl font-black">◀</span>
-            </Button>
-            <span className="flex items-center px-4 text-gray-700">
-              {currentPage} / {totalPages}
-            </span>
-            <Button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 w-10 h-10 flex items-center justify-center"
-            >
-              <span className="text-2xl font-black">▶</span>
-            </Button>
-          </div>
-        )}
+        <div className="mt-8 flex justify-center space-x-2">
+          <Button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 w-10 h-10 flex items-center justify-center"
+          >
+            <span className="text-2xl font-black">◀</span>
+          </Button>
+          <span className="flex items-center px-4 text-gray-700">
+            {currentPage} / {totalPages}
+          </span>
+          <Button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+            className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 w-10 h-10 flex items-center justify-center"
+          >
+            <span className="text-2xl font-black">▶</span>
+          </Button>
+        </div>
       </div>
     </div>
   );

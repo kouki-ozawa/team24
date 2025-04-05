@@ -8,6 +8,7 @@ export default function useFetchProjects() {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [shouldRefresh, setShouldRefresh] = useState(0);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -39,7 +40,11 @@ export default function useFetchProjects() {
     };
 
     fetchProjects();
-  }, []);
+  }, [shouldRefresh]); // shouldRefreshが変更されたときにプロジェクト一覧を再取得
+
+  const refreshProjects = () => {
+    setShouldRefresh(prev => prev + 1); // shouldRefreshを更新してプロジェクト一覧を再取得
+  };
 
   return {
     projects,
@@ -48,5 +53,6 @@ export default function useFetchProjects() {
     currentPage,
     totalPages,
     setCurrentPage,
+    refreshProjects, // 更新関数を返す
   };
 }

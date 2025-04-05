@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import useFetchProjects from "@/hooks/useFetchProject";
 
 const TECH_STACKS = [
   "React",
@@ -24,62 +25,57 @@ const TECH_STACKS = [
   "Azure",
 ];
 
-export default function NewProjectPage() {
+export default function NewProject() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [formData, setFormData] = useState({
-    name: "",
+  const { refreshProjects } = useFetchProjects();
+  const [projectData, setProjectData] = useState({
+    title: "",
     description: "",
-    start_date: "",
-    end_date: "",
-    required_members: "",
-    documents: "",
-    references: "",
+    start: "",
+    deadline: "",
+    color: "#FFFFFF",
+    image: "string",
+    document: "",
+    reference: ""
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-
     try {
-      const response = await fetch("/api/project", {
+      const res = await fetch("https://skill-match-api-mongo.onrender.com/api/project", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...projectData,
+          color: "#FFFFFF" // デフォルトの色を設定
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error("プロジェクトの作成に失敗しました");
+      if (res.ok) {
+        const createdProject = await res.json();
+        console.log("Created project:", createdProject);
+        
+        // プロジェクト一覧を取得
+        const projectsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/project`);
+        if (!projectsRes.ok) {
+          throw new Error("プロジェクト一覧の取得に失敗しました");
+        }
+        await projectsRes.json(); // プロジェクト一覧を取得して確実にキャッシュを更新
+        
+        // プロジェクト一覧ページに遷移
+        router.push("/projects");
+      } else {
+        const errorData = await res.text();
+        console.error("プロジェクトの作成に失敗しました - ステータス:", res.status);
+        console.error("エラーレスポンス:", errorData);
+        alert("プロジェクトの作成に失敗しました。もう一度お試しください。");
       }
-
-      router.push("/projects");
     } catch (err) {
-      setError(err.message);
-      window.scrollTo(0, 0);
-    } finally {
-      setLoading(false);
+      console.error("プロジェクトの作成に失敗しました:", err);
+      alert("プロジェクトの作成に失敗しました。もう一度お試しください。");
     }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleTechStackChange = (tech) => {
-    setFormData((prev) => ({
-      ...prev,
-      tech_stacks: prev.tech_stacks.includes(tech)
-        ? prev.tech_stacks.filter((t) => t !== tech)
-        : [...prev.tech_stacks, tech],
-    }));
   };
 
   return (
@@ -114,25 +110,18 @@ export default function NewProjectPage() {
 
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600 text-sm">
-                {error}
-              </div>
-            )}
-
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                 プロジェクト名 *
               </label>
               <input
                 type="text"
-                id="name"
-                name="name"
-                required
-                value={formData.name}
-                onChange={handleChange}
+                id="title"
+                value={projectData.title}
+                onChange={(e) => setProjectData({...projectData, title: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="プロジェクト名を入力"
+                required
               />
             </div>
 
@@ -142,74 +131,53 @@ export default function NewProjectPage() {
               </label>
               <textarea
                 id="description"
-                name="description"
-                required
-                value={formData.description}
-                onChange={handleChange}
+                value={projectData.description}
+                onChange={(e) => setProjectData({...projectData, description: e.target.value})}
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="プロジェクトの説明を入力"
+                required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="start_date" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="start" className="block text-sm font-medium text-gray-700 mb-1">
                   開始日 *
                 </label>
                 <input
                   type="date"
-                  id="start_date"
-                  name="start_date"
+                  id="start"
+                  value={projectData.start}
+                  onChange={(e) => setProjectData({...projectData, start: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
-                  value={formData.start_date}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 [&::-webkit-calendar-picker-indicator]:ml-1 [&::-webkit-date-and-time-value]:text-left [&::-webkit-date-and-time-value]:w-[calc(100%-24px)] [&::-webkit-date-and-time-value]:whitespace-nowrap [&:not([value])]:text-gray-400"
                 />
               </div>
 
               <div>
-                <label htmlFor="end_date" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-1">
                   終了日 *
                 </label>
                 <input
                   type="date"
-                  id="end_date"
-                  name="end_date"
+                  id="deadline"
+                  value={projectData.deadline}
+                  onChange={(e) => setProjectData({...projectData, deadline: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
-                  value={formData.end_date}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 [&::-webkit-calendar-picker-indicator]:ml-1 [&::-webkit-date-and-time-value]:text-left [&::-webkit-date-and-time-value]:w-[calc(100%-24px)] [&::-webkit-date-and-time-value]:whitespace-nowrap [&:not([value])]:text-gray-400"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="required_members" className="block text-sm font-medium text-gray-700 mb-1">
-                参加人数 *
-              </label>
-              <input
-                type="number"
-                id="required_members"
-                name="required_members"
-                required
-                min="1"
-                value={formData.required_members}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="参加人数を入力"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="documents" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="document" className="block text-sm font-medium text-gray-700 mb-1">
                 Documents
               </label>
               <textarea
-                id="documents"
-                name="documents"
-                value={formData.documents}
-                onChange={handleChange}
+                id="document"
+                value={projectData.document}
+                onChange={(e) => setProjectData({...projectData, document: e.target.value})}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="プロジェクトに関連するドキュメントのURLや説明を入力"
@@ -217,14 +185,13 @@ export default function NewProjectPage() {
             </div>
 
             <div>
-              <label htmlFor="references" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="reference" className="block text-sm font-medium text-gray-700 mb-1">
                 References
               </label>
               <textarea
-                id="references"
-                name="references"
-                value={formData.references}
-                onChange={handleChange}
+                id="reference"
+                value={projectData.reference}
+                onChange={(e) => setProjectData({...projectData, reference: e.target.value})}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="プロジェクトに関連する参考資料のURLや説明を入力"
@@ -241,10 +208,9 @@ export default function NewProjectPage() {
               </Button>
               <Button
                 type="submit"
-                disabled={loading}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {loading ? "作成中..." : "作成する"}
+                作成する
               </Button>
             </div>
           </form>
