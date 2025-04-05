@@ -28,27 +28,24 @@ export default function ProjectsPage() {
     const fetchProjects = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/project`
+          "https://skill-match-api-mongo.onrender.com/api/project"
         );
         if (!response.ok) throw new Error("プロジェクトの取得に失敗しました");
         const data = await response.json();
-        
-        // プロジェクトが空の場合はデフォルトの空プロジェクトを生成
-        if (data.length === 0) {
-          const emptyProjects = Array(DEFAULT_EMPTY_PROJECTS).fill({
-            name: "",
-            description: "",
-            start_date: "",
-            end_date: "",
-            required_members: null,
-            status: "active"
-          });
-          setProjects(emptyProjects);
-        } else {
-          setProjects(data);
-        }
-        
-        setTotalPages(Math.ceil(data.length / ITEMS_PER_PAGE));
+        // APIのレスポンスを現在のプロジェクト形式にマッピング
+        const mappedProjects = data.map(project => ({
+          id: project.id,
+          name: project.title,
+          description: project.description,
+          start: project.start,
+          deadline: project.deadline,
+          required_members: project.required_members || null,
+          status: project.status || "active",
+          progress: project.progress || 0,
+          members: project.members || []
+        }));
+        setProjects(mappedProjects);
+        setTotalPages(Math.ceil(mappedProjects.length / ITEMS_PER_PAGE));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -173,21 +170,20 @@ export default function ProjectsPage() {
           {paginatedProjects.map((project) => (
             <Card
               key={project.id}
-              className={`group transition-all duration-300 bg-gradient-to-br from-white via-white to-gray-50/50 border border-gray-200/80 overflow-hidden rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] ${
-                project.start_date && project.end_date && project.required_members != null
-                  ? "cursor-pointer hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-blue-200 hover:scale-[1.02] hover:bg-gradient-to-br hover:from-blue-50/20 hover:via-white hover:to-gray-50/50"
+              className={`relative overflow-hidden transition-all duration-200 ${
+                project.id
+                  ? "hover:shadow-lg hover:scale-[1.01] cursor-pointer"
                   : "opacity-75"
               }`}
               onClick={async () => {
-                if (project.start_date && project.end_date && project.required_members != null) {
+                if (project.id) {
                   try {
-                    const response = await fetch(`/api/project/${project.id}`);
-                    if (!response.ok) {
-                      throw new Error("プロジェクトの取得に失敗しました");
-                    }
-                    router.push(`/projects/${project.id}`);
-                  } catch (error) {
-                    console.error("プロジェクトの取得に失敗しました:", error);
+                    const response = await fetch(`https://skill-match-api-mongo.onrender.com/api/project/${project.id}`);
+                    if (!response.ok) throw new Error("プロジェクトの取得に失敗しました");
+                    const data = await response.json();
+                    router.push(`/projects/id/${project.id}`);
+                  } catch (err) {
+                    console.error("プロジェクトの取得に失敗しました:", err);
                   }
                 }
               }}
@@ -196,13 +192,8 @@ export default function ProjectsPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className={`text-lg font-semibold ${!project.name ? "text-gray-400" : "text-gray-900"} cursor-default`}>
-                      {project.name || "Project Name"}
+                      {project.name || "No Project Name"}
                     </h3>
-                    {!project.name && (
-                      <p className="mt-1 text-sm text-gray-400 cursor-default">
-                        project description
-                      </p>
-                    )}
                   </div>
                 </div>
                 <div className="absolute top-0 right-0 mt-2 mr-3">
@@ -217,20 +208,18 @@ export default function ProjectsPage() {
                   </span>
                 </div>
 
-                {project.name && (
-                  <div className="mb-6">
-                    <p className="mt-2 text-sm text-gray-600/90 line-clamp-2 cursor-default">
-                      {project.description}
-                    </p>
-                  </div>
-                )}
+                <div className="mb-6">
+                  <p className="mt-2 text-sm text-gray-600/90 line-clamp-2 cursor-default">
+                    {project.description === "" ? "No description" : project.description}
+                  </p>
+                </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-gradient-to-br from-white to-gray-50/30 p-3 rounded-xl shadow-[0_2px_8px_rgb(0,0,0,0.02)] border border-gray-100/80 group-hover:border-gray-200/80 group-hover:shadow-[0_2px_8px_rgb(0,0,0,0.04)] transition-all duration-300">
                     <p className="text-sm font-medium text-gray-700 cursor-default">期間</p>
                     <p className="mt-1.5 text-sm text-gray-900 cursor-default">
-                      {project.start_date && project.end_date ? (
-                        `${project.start_date} 〜 ${project.end_date}`
+                      {project.start && project.deadline ? (
+                        `${project.start} 〜 ${project.deadline}`
                       ) : (
                         <span className="inline-flex items-center gap-1 text-gray-400 -ml-[2px]">
                           <span className="font-mono">_</span>
