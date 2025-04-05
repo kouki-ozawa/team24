@@ -18,24 +18,24 @@ import { Button } from "@/components/ui/button";
 export default function Sidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  
+
   // ローカルストレージから状態を復元
   useEffect(() => {
-    const savedState = localStorage.getItem('sidebarCollapsed');
+    const savedState = localStorage.getItem("sidebarCollapsed");
     if (savedState !== null) {
-      setIsCollapsed(savedState === 'true');
+      setIsCollapsed(savedState === "true");
     }
   }, []);
-  
+
   // 状態変更時にローカルストレージに保存
   const toggleCollapse = () => {
     const newState = !isCollapsed;
     setIsCollapsed(newState);
-    localStorage.setItem('sidebarCollapsed', String(newState));
+    localStorage.setItem("sidebarCollapsed", String(newState));
   };
 
   // ログインページではサイドバーを表示しない
-  if (pathname === "/" ) {
+  if (pathname === "/") {
     return null;
   }
 
@@ -56,11 +56,6 @@ export default function Sidebar() {
       icon: <Brain className="w-5 h-5" />,
     },
     {
-      name: "タスク管理",
-      href: "/tasks",
-      icon: <CheckSquare className="w-5 h-5" />,
-    },
-    {
       name: "プロジェクト管理",
       href: "/projects",
       icon: <FolderKanban className="w-5 h-5" />,
@@ -79,8 +74,14 @@ export default function Sidebar() {
       }`}
     >
       {/* ロゴエリア */}
-      <div className={`p-4 border-b flex ${isCollapsed ? 'justify-center' : 'justify-between'} items-center`}>
-        {!isCollapsed && <Link href="/dashboard" className="text-xl font-bold text-gray-900">SkillMatch</Link>}
+      <div
+        className={`p-4 border-b flex ${isCollapsed ? "justify-center" : "justify-between"} items-center`}
+      >
+        {!isCollapsed && (
+          <Link href="/dashboard" className="text-xl font-bold text-gray-900">
+            SkillMatch
+          </Link>
+        )}
         <Button
           variant="ghost"
           size="icon"
@@ -94,18 +95,19 @@ export default function Sidebar() {
           )}
         </Button>
       </div>
-      
+
       {/* ナビゲーションエリア */}
       <div className="p-4 flex-1 overflow-y-auto">
         <nav className="space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || 
-                            (item.href !== "/dashboard" && pathname.startsWith(item.href));
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/dashboard" && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center ${isCollapsed ? "justify-center" : ""} px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   isActive
                     ? "bg-blue-50 text-blue-600"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -121,12 +123,6 @@ export default function Sidebar() {
             );
           })}
         </nav>
-      </div>
-      
-      {/* バージョン情報 */}
-      <div className={`p-4 border-t text-gray-400 text-xs ${isCollapsed ? 'text-center' : ''}`}>
-        {!isCollapsed && <div>SkillMatch v1.0</div>}
-        {isCollapsed && <div>v1.0</div>}
       </div>
     </div>
   );
