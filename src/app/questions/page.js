@@ -284,11 +284,10 @@ export default function Home() {
               {questions.map((_, index) => (
                 <button
                   key={index}
-                  className={`w-3 h-3 rounded-full focus:outline-none ${
-                    answers[questions[index]?.Question_ID] !== undefined
+                  className={`w-3 h-3 rounded-full focus:outline-none ${answers[questions[index]?.Question_ID] !== undefined
                       ? "bg-blue-600"
                       : "bg-gray-300"
-                  } ${currentQuestionIndex === index ? "ring-2 ring-blue-400" : ""}`}
+                    } ${currentQuestionIndex === index ? "ring-2 ring-blue-400" : ""}`}
                   onClick={() => setCurrentQuestionIndex(index)}
                 />
               ))}
@@ -307,44 +306,17 @@ export default function Home() {
                     {questions[currentQuestionIndex].Text}
                   </p>
                   <RadioGroup
-  value={answers[questions[currentQuestionIndex].Question_ID] || ""}
-  onValueChange={(value) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questions[currentQuestionIndex].Question_ID]: value,
-    }));
-    // 選択後に自動的に次の質問に進む
-    setTimeout(() => {
-      handleNext();
-    }, 300); // 少し遅延を入れることで選択が視覚的に確認できる
-  }}
-  className="space-y-4"
->
-  {options.map((option) => (
-    <div
-      key={option.value}
-      className="flex items-center space-x-3"
-    >
-      <RadioGroupItem
-        value={option.value}
-        id={`option-${option.value}`}
-      />
-      <Label htmlFor={`option-${option.value}`}>
-        {option.label}
-      </Label>
-    </div>
-  ))}
-</RadioGroup>
-                  <RadioGroup
-                    value={
-                      answers[questions[currentQuestionIndex].Question_ID] || ""
-                    }
-                    onValueChange={(value) =>
+                    value={answers[questions[currentQuestionIndex].Question_ID] || ""}
+                    onValueChange={(value) => {
                       setAnswers((prev) => ({
                         ...prev,
                         [questions[currentQuestionIndex].Question_ID]: value,
-                      }))
-                    }
+                      }));
+                      // 選択後に自動的に次の質問に進む
+                      setTimeout(() => {
+                        handleNext();
+                      }, 300); // 少し遅延を入れることで選択が視覚的に確認できる
+                    }}
                     className="space-y-4"
                   >
                     {options.map((option) => (
