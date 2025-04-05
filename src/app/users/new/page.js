@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import RequireAuth from "@/components/RequireAuth";
 import { useLocalStorage } from "@/components/utils/UseLocalStorage";
-import { ArrowLeft, Save, RefreshCw } from "lucide-react";
+import { ArrowLeft, Save, RefreshCw, Plus, Search, UserRound } from "lucide-react";
 
 export default function NewUserPage() {
   const router = useRouter();

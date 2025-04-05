@@ -3,27 +3,37 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import RequireAuth from "@/components/RequireAuth";
-import { useLocalStorage } from "@/components/utils/UseLocalStorage";
-import { Search, RefreshCw, PenSquare, Trash2 } from "lucide-react";
+import { UserRound, RefreshCw, PenSquare, ArrowLeft } from "lucide-react";
 
-export default function UsersPage() {
+export default function UserProfilePage() {
   const router = useRouter();
-  const { value: userId } = useLocalStorage("userId");
-  
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [userId, setUserId] = useState(null);
+  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // ユーザー一覧を取得
-  const fetchUsers = async () => {
+  // ログイン中のユーザーIDを取得
+  useEffect(() => {
+    try {
+      const storedUserId = localStorage.getItem("userId");
+      setUserId(storedUserId);
+    } catch (error) {
+      console.error("ローカルストレージアクセスエラー:", error);
+    }
+  }, []);
+
+  // ユーザー情報を取得
+  const fetchUserProfile = async () => {
+    if (!userId) return;
+    
     setIsLoading(true);
+    setError(null);
+    
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/user`,
+        `${process.env.NEXT_PUBLIC_API_URL}/user/${userId}`,
         {
           method: "GET",
           headers: {
@@ -37,163 +47,190 @@ export default function UsersPage() {
       }
 
       const data = await response.json();
-      setUsers(data);
-      setFilteredUsers(data);
+      setUser(data);
     } catch (error) {
       console.error("ユーザー取得エラー:", error);
-      alert("ユーザー情報の取得に失敗しました。後でもう一度お試しください。");
+      setError("ユーザー情報の取得に失敗しました。後でもう一度お試しください。");
+      alert("ユーザー情報の取得に失敗しました。");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 初期読み込み
+  // ユーザーIDが変更されたら情報を取得
   useEffect(() => {
-    fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // 検索機能
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredUsers(users);
-    } else {
-      const query = searchQuery.toLowerCase();
-      const filtered = users.filter(
-        (user) =>
-          user.username?.toLowerCase().includes(query) ||
-          user.email?.toLowerCase().includes(query)
-      );
-      setFilteredUsers(filtered);
+    if (userId) {
+      fetchUserProfile();
     }
-  }, [searchQuery, users]);
+  }, [userId]);
 
-  // ユーザー編集ページへ遷移
-  const handleEditUser = (userId) => {
-    router.push(`/users/${userId}/edit`);
+  // ダッシュボードに戻る
+  const handleGoBack = () => {
+    router.push("/dashboard");
   };
 
-  // ユーザー削除
-  const handleDeleteUser = async (userId) => {
-    if (!confirm("このユーザーを削除してもよろしいですか？")) {
-      return;
+  // 設定ページへ移動
+  const handleGoToSettings = () => {
+    if (userId) {
+      router.push(`/users/${userId}/settings`);
     }
+  };
 
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/user/${userId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("ユーザーの削除に失敗しました");
-      }
-
-      // 成功したら一覧を更新
-      fetchUsers();
-      alert("ユーザーを削除しました");
-    } catch (error) {
-      console.error("ユーザー削除エラー:", error);
-      alert("ユーザーの削除に失敗しました。もう一度お試しください。");
-    }
+  // スキル診断ページへ移動
+  const handleGoToSkillDiagnosis = () => {
+    router.push("/questions");
   };
 
   const content = (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">ユーザー管理</h1>
-        <Button onClick={() => router.push("/users/new")} className="bg-blue-600">
-          新規ユーザー作成
-        </Button>
-      </div>
+    <div className="p-6 max-w-4xl mx-auto">
+      <Button
+        variant="ghost"
+        onClick={handleGoBack}
+        className="mb-6 flex items-center text-gray-600"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        ダッシュボードに戻る
+      </Button>
 
-      {/* 検索と更新 */}
-      <div className="flex gap-2 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="ユーザー名・メールで検索..."
-            className="pl-10"
-          />
+      <h1 className="text-2xl font-bold mb-6">マイアカウント</h1>
+
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">ユーザー情報を読み込み中...</p>
         </div>
-        <Button variant="outline" onClick={fetchUsers} disabled={isLoading}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-          更新
-        </Button>
-      </div>
-
-      {/* ユーザーテーブル */}
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">ID</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">ユーザー名</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">メールアドレス</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">登録日</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-8">
-                    <div className="flex justify-center">
-                      <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-                    </div>
-                    <p className="mt-2 text-gray-500">読み込み中...</p>
-                  </td>
-                </tr>
-              ) : filteredUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-8 text-gray-500">
-                    {searchQuery ? "検索条件に一致するユーザーが見つかりません" : "ユーザーがいません"}
-                  </td>
-                </tr>
-              ) : (
-                filteredUsers.map((user) => (
-                  <tr key={user._id} className="border-t hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-500">{user._id.substring(0, 8)}...</td>
-                    <td className="px-4 py-3">{user.username || "未設定"}</td>
-                    <td className="px-4 py-3 text-sm">{user.email || "未設定"}</td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString('ja-JP') : "不明"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditUser(user._id)}
-                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                        >
-                          <PenSquare className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteUser(user._id)}
-                          className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+      ) : error ? (
+        <Card className="p-8 text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <Button onClick={fetchUserProfile} className="flex items-center mx-auto">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            再読み込み
+          </Button>
+        </Card>
+      ) : user ? (
+        <div className="space-y-6">
+          {/* ユーザー情報カード */}
+          <Card className="p-6 bg-white shadow-sm">
+            <div className="flex flex-col md:flex-row items-start md:items-center">
+              <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-2xl font-bold mb-4 md:mb-0 md:mr-6">
+                {user.username ? user.username.substring(0, 2).toUpperCase() : "??"}
+              </div>
+              <div className="flex-1">
+                <div className="flex flex-col md:flex-row md:items-center justify-between w-full">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {user.username || "名前未設定"}
+                    </h2>
+                    <p className="text-gray-500 flex items-center mt-1">
+                      {user.email}
+                    </p>
+                    {user.role && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        ロール: {user.role === "admin" ? "管理者" : "一般ユーザー"}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <Button
+                    onClick={handleGoToSettings}
+                    className="mt-4 md:mt-0 flex items-center"
+                  >
+                    <PenSquare className="w-4 h-4 mr-2" />
+                    設定
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* 基本情報 */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {user.joinedAt && (
+                <div className="flex items-center text-gray-600">
+                  <span>登録日: {new Date(user.joinedAt).toLocaleDateString('ja-JP')}</span>
+                </div>
               )}
-            </tbody>
-          </table>
+            </div>
+            
+            {/* 自己紹介 */}
+            {user.bio && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-md">
+                <h3 className="font-medium text-gray-900 mb-2 flex items-center">
+                  <UserRound className="w-4 h-4 mr-2" />
+                  自己紹介
+                </h3>
+                <p className="text-gray-600 whitespace-pre-line">{user.bio}</p>
+              </div>
+            )}
+          </Card>
+
+          {/* スキル情報 */}
+          {(user.technical_skill !== undefined || 
+            user.problem_solving_ability !== undefined ||
+            user.communication_skill !== undefined ||
+            user.leadership_and_collaboration !== undefined ||
+            user.security_awareness !== undefined) && (
+            <Card className="p-6 bg-white shadow-sm">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">スキル評価</h3>
+              <div className="space-y-4">
+                {Object.entries({
+                  "技術スキル": user.technical_skill,
+                  "問題解決能力": user.problem_solving_ability,
+                  "コミュニケーションスキル": user.communication_skill,
+                  "リーダーシップと協調性": user.leadership_and_collaboration,
+                  "セキュリティ意識": user.security_awareness
+                }).map(([name, value]) => (
+                  value !== undefined && (
+                    <div key={name} className="flex items-center justify-between">
+                      <span className="text-gray-700">{name}</span>
+                      <div className="flex items-center">
+                        <div className="flex space-x-1 mr-2">
+                          {[...Array(5)].map((_, i) => (
+                            <div
+                              key={i}
+                              className={`w-2 h-8 rounded-sm ${
+                                i < value ? "bg-blue-500" : "bg-gray-200"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm text-gray-600">
+                          {value}/5
+                        </span>
+                      </div>
+                    </div>
+                  )
+                ))}
+              </div>
+              
+              <div className="mt-4 text-sm text-gray-500">
+                最終更新: {user.last_assessment_date 
+                  ? new Date(user.last_assessment_date).toLocaleDateString('ja-JP', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })
+                  : "未評価"}
+              </div>
+            </Card>
+          )}
+
+          {/* スキル診断リンク */}
+          <div className="text-center">
+            <Button 
+              onClick={handleGoToSkillDiagnosis}
+              variant="outline"
+              className="bg-blue-50 hover:bg-blue-100"
+            >
+              スキル診断を受ける
+            </Button>
+          </div>
         </div>
-      </Card>
+      ) : (
+        <Card className="p-8 text-center">
+          <UserRound className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600">ユーザー情報が見つかりませんでした</p>
+        </Card>
+      )}
     </div>
   );
 

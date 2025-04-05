@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import RequireAuth from "@/components/RequireAuth";
-import { useLocalStorage } from "@/components/utils/UseLocalStorage";
-import { useToast } from "@/components/ui/use-toast";
 import {
   ArrowLeft,
   Mail,
@@ -20,17 +18,54 @@ import {
   MapPin,
   Calendar,
   Briefcase,
+  Brain,
+  Code,
+  Users,
+  Shield,
+  Target,
+  Clock,
 } from "lucide-react";
+
+// アイコンのマップ
+const skillIcons = {
+  technical_skill: <Code className="w-5 h-5" />,
+  problem_solving_ability: <Brain className="w-5 h-5" />,
+  communication_skill: <Users className="w-5 h-5" />,
+  security_awareness: <Shield className="w-5 h-5" />,
+  leadership_and_collaboration: <Target className="w-5 h-5" />,
+};
+
+// スキル名の日本語表記
+const skillNames = {
+  technical_skill: "技術スキル",
+  problem_solving_ability: "問題解決能力",
+  communication_skill: "コミュニケーションスキル",
+  security_awareness: "セキュリティ意識",
+  leadership_and_collaboration: "リーダーシップと協調性",
+};
+
+// ユーザーがスキルデータを持っているかチェック
+const hasSkillData = (user) => {
+  if (!user) return false;
+  return Object.keys(skillNames).some(key => 
+    user[key] !== undefined && user[key] !== null
+  );
+};
 
 export default function UserProfilePage({ params }) {
   const userId = params.id;
   const router = useRouter();
-  const { toast } = useToast();
-  const { value: currentUserId } = useLocalStorage("userId");
+  const [currentUserId, setCurrentUserId] = useState(null);
   
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // ログイン中のユーザーIDを取得
+  useEffect(() => {
+    const storedUserId = localStorage.getItem("userId");
+    setCurrentUserId(storedUserId);
+  }, []);
   
   // ユーザー情報を取得
   const fetchUserProfile = async () => {
@@ -39,7 +74,7 @@ export default function UserProfilePage({ params }) {
     
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/user/${userId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/user/${userId}`,
         {
           method: "GET",
           headers: {
@@ -57,11 +92,7 @@ export default function UserProfilePage({ params }) {
     } catch (error) {
       console.error("ユーザー取得エラー:", error);
       setError("ユーザー情報の取得に失敗しました。後でもう一度お試しください。");
-      toast({
-        title: "エラー",
-        description: "ユーザー情報の取得に失敗しました。",
-        variant: "destructive",
-      });
+      alert("ユーザー情報の取得に失敗しました。");
     } finally {
       setIsLoading(false);
     }
@@ -83,6 +114,11 @@ export default function UserProfilePage({ params }) {
   // ユーザー一覧に戻る
   const handleGoBack = () => {
     router.push("/users");
+  };
+
+  // スキル診断ページに移動
+  const handleGoToSkillDiagnosis = () => {
+    router.push("/questions");
   };
 
   // スキルレベルの表示
@@ -286,6 +322,91 @@ export default function UserProfilePage({ params }) {
                 </div>
               </Card>
             )}
+
+            {/* スキル診断結果セクション */}
+            <Card className="p-6 bg-white shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  スキル診断結果
+                </h2>
+                
+                {/* 自分のプロフィールの場合のみスキル診断ボタンを表示 */}
+                {currentUserId === userId && (
+                  <Button 
+                    onClick={handleGoToSkillDiagnosis} 
+                    className="mt-2 md:mt-0"
+                  >
+                    新しい診断を受ける
+                  </Button>
+                )}
+              </div>
+              
+              {isLoading ? (
+                <div className="py-4 text-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-500">スキル診断データを読み込み中...</p>
+                </div>
+              ) : user && hasSkillData(user) ? (
+                <div>
+                  {/* 診断日時 */}
+                  {user.last_assessment_date && (
+                    <div className="mb-6 text-sm text-gray-500 flex items-center">
+                      <Clock className="w-4 h-4 mr-1" />
+                      最終診断日: {new Date(user.last_assessment_date).toLocaleDateString('ja-JP', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                  )}
+                  
+                  {/* スキル評価の視覚化 */}
+                  <div className="space-y-6">
+                    {Object.entries(skillNames).map(([key, name]) => {
+                      if (!user[key] && user[key] !== 0) return null;
+                      
+                      // 値が小数点の場合は丸める
+                      const displayValue = typeof user[key] === 'number' ? Math.min(Math.round(user[key]), 5) : 0;
+                      
+                      return (
+                        <div key={key} className="flex flex-col">
+                          <div className="flex items-center mb-2">
+                            {skillIcons[key] || <Award className="w-5 h-5" />}
+                            <span className="ml-2 font-medium">
+                              {name}
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-2.5">
+                            <div
+                              className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
+                              style={{ width: `${(displayValue / 5) * 100}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex justify-between mt-1">
+                            <span className="text-xs text-gray-500">基礎レベル</span>
+                            <span className="text-xs font-medium text-gray-700">レベル {displayValue}</span>
+                            <span className="text-xs text-gray-500">エキスパート</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-6 border border-dashed border-gray-300 rounded-md">
+                  <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600 mb-4">スキル診断結果がまだありません</p>
+                  {currentUserId === userId && (
+                    <Button onClick={handleGoToSkillDiagnosis}>
+                      診断を受ける
+                    </Button>
+                  )}
+                </div>
+              )}
+            </Card>
           </div>
         ) : (
           <Card className="p-8 text-center">
