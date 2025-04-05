@@ -2,26 +2,20 @@ import { useState, useEffect } from "react";
 import useSWR from 'swr';
 
 // フェッチャー関数
-const fetcher = async (url) => {
-  console.log('Fetching from URL:', url); // デバッグ用ログ
-  try {
-    const res = await fetch(url);
-    console.log('Response status:', res.status); // レスポンスステータスを確認
-    
-    if (!res.ok) {
-      const error = new Error('ユーザー情報の取得に失敗しました');
-      error.info = await res.json().catch(() => ({})); // JSONパースエラーを防止
-      error.status = res.status;
-      throw error;
+async function fetcher(url) {
+    try {
+        const res = await fetch(url);
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Fetch error:", res.status, errorText);
+            throw new Error("ユーザー情報の取得に失敗しました");
+        }
+        return res.json();
+    } catch (err) {
+        console.error(err);
+        throw err;
     }
-    
-    const data = await res.json();
-    return data;
-  } catch (err) {
-    console.error('Fetch error:', err); // エラー詳細をログ
-    throw err;
-  }
-};
+}
 
 export const useUser = (id) => {
   // 環境変数をログ出力（デバッグ用）
