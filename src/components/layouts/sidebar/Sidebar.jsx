@@ -56,14 +56,14 @@ export default function Sidebar() {
       icon: <Brain className="w-5 h-5" />,
     },
     {
-      name: "タスク管理",
-      href: "/tasks",
-      icon: <CheckSquare className="w-5 h-5" />,
-    },
-    {
       name: "プロジェクト管理",
       href: "/projects",
       icon: <FolderKanban className="w-5 h-5" />,
+    },
+    {
+      name: "タスク一覧",
+      href: "/tasks",
+      icon: <Menu className="w-5 h-5" />,
     },
   ];
 
