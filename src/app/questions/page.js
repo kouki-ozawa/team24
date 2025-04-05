@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import RequireAuth from "@/components/RequireAuth";
 import {
   Brain,
   Code,
@@ -167,7 +168,7 @@ export default function Home() {
       ? Math.round((Object.keys(answers).length / questions.length) * 100)
       : 0;
 
-  return (
+  const content = (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-center text-gray-900 mb-8">
@@ -199,154 +200,122 @@ export default function Home() {
                   className={`w-3 h-3 rounded-full focus:outline-none ${
                     answers[questions[index]?.Question_ID] !== undefined
                       ? "bg-blue-600"
-                      : index === currentQuestionIndex
-                        ? "bg-blue-300"
-                        : "bg-gray-300"
-                  }`}
-                  onClick={() => {
-                    // すでに回答済みか、直前の質問まで回答済みの場合のみジャンプ可能
-                    const canJump =
-                      index === 0 ||
-                      Object.keys(answers).length >= index ||
-                      (index > 0 &&
-                        answers[questions[index - 1]?.Question_ID] !==
-                          undefined);
-
-                    if (canJump) {
-                      setCurrentQuestionIndex(index);
-                    }
-                  }}
-                ></button>
+                      : "bg-gray-300"
+                  } ${currentQuestionIndex === index ? "ring-2 ring-blue-400" : ""}`}
+                  onClick={() => setCurrentQuestionIndex(index)}
+                />
               ))}
             </div>
 
             {/* 質問カード */}
-            <div className="relative overflow-hidden">
+            <Card
+              className={`p-6 mb-6 transition-all duration-500 ${transitionClass}`}
+            >
               {questions[currentQuestionIndex] && (
-                <Card
-                  key={questions[currentQuestionIndex].Question_ID}
-                  className={`p-6 ${transitionClass} transition-all duration-500 ease-in-out`}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      {icons[Object.keys(icons)[currentQuestionIndex % 5]]}
-                      <h2 className="text-xl font-semibold text-gray-800">
-                        {questions[currentQuestionIndex].Text}
-                      </h2>
-                    </div>
-                    <span className="text-sm font-medium text-gray-500">
-                      {currentQuestionIndex + 1}/{questions.length}
-                    </span>
-                  </div>
+                <div>
+                  <h2 className="text-xl font-semibold mb-4">
+                    質問 {currentQuestionIndex + 1}
+                  </h2>
+                  <p className="text-gray-700 mb-6">
+                    {questions[currentQuestionIndex].Text}
+                  </p>
+
                   <RadioGroup
-                    value={answers[questions[currentQuestionIndex].Question_ID]}
-                    onValueChange={(value) => {
+                    value={
+                      answers[questions[currentQuestionIndex].Question_ID] || ""
+                    }
+                    onValueChange={(value) =>
                       setAnswers((prev) => ({
                         ...prev,
                         [questions[currentQuestionIndex].Question_ID]: value,
-                      }));
-                    }}
-                    className="space-y-3"
+                      }))
+                    }
+                    className="space-y-4"
                   >
                     {options.map((option) => (
                       <div
                         key={option.value}
-                        className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex items-center space-x-3"
                       >
                         <RadioGroupItem
                           value={option.value}
-                          id={`${questions[currentQuestionIndex].Question_ID}-${option.value}`}
+                          id={`option-${option.value}`}
                         />
-                        <Label
-                          htmlFor={`${questions[currentQuestionIndex].Question_ID}-${option.value}`}
-                          className="w-full cursor-pointer"
-                        >
+                        <Label htmlFor={`option-${option.value}`}>
                           {option.label}
                         </Label>
                       </div>
                     ))}
                   </RadioGroup>
-                </Card>
+                </div>
               )}
-            </div>
+            </Card>
 
             {/* ナビゲーションボタン */}
-            <div className="mt-8 flex justify-between">
+            <div className="flex justify-between">
               <Button
                 onClick={handlePrevious}
-                variant="outline"
-                className="flex items-center gap-2"
                 disabled={currentQuestionIndex === 0}
+                variant="outline"
+                className="flex items-center"
               >
-                <ArrowLeft className="w-4 h-4" />
-                前へ
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                前の質問
               </Button>
-
               <Button
                 onClick={handleNext}
-                className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
                 disabled={!canProceed(currentQuestionIndex)}
+                className="flex items-center bg-blue-600 hover:bg-blue-700"
               >
-                {currentQuestionIndex < questions.length - 1 ? (
+                {currentQuestionIndex === questions.length - 1 ? (
                   <>
-                    次へ
-                    <ArrowRight className="w-4 h-4" />
+                    診断結果を見る
+                    <CheckCircle className="w-4 h-4 ml-2" />
                   </>
                 ) : (
                   <>
-                    診断する
-                    <CheckCircle className="w-4 h-4" />
+                    次の質問
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}
               </Button>
             </div>
           </>
         ) : (
-          <Card className="mt-8 p-6 animate-fadeIn">
-            <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">
-              診断結果
-            </h2>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">技術力:</span>
-                <span className="text-lg">{userSkills.technical_skill}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">問題解決能力:</span>
-                <span className="text-lg">
-                  {userSkills.problem_solving_ability}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">コミュニケーション能力:</span>
-                <span className="text-lg">
-                  {userSkills.communication_skill}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">セキュリティ意識:</span>
-                <span className="text-lg">{userSkills.security_awareness}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">学習適応能力:</span>
-                <span className="text-lg">
-                  {userSkills.leadership_and_collaboration}
-                </span>
-              </div>
+          <Card className="p-6">
+            <h2 className="text-2xl font-semibold mb-6">診断結果</h2>
+            <div className="space-y-6">
+              {Object.entries(userSkills).map(([skill, value]) => (
+                <div key={skill}>
+                  <div className="flex items-center mb-2">
+                    {icons[skill]}
+                    <span className="ml-2 font-medium">
+                      {skill
+                        .split("_")
+                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(" ")}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
+                      style={{ width: `${(value / 5) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            <div className="mt-8 flex justify-center">
-              <Button
-                onClick={handleReset}
-                variant="outline"
-                className="border-blue-600 text-blue-600 hover:bg-blue-50"
-              >
-                もう一度診断する
-              </Button>
-            </div>
+            <Button
+              onClick={handleReset}
+              className="mt-6 w-full bg-blue-600 hover:bg-blue-700"
+            >
+              もう一度診断する
+            </Button>
           </Card>
         )}
       </div>
     </div>
   );
+
+  return <RequireAuth>{content}</RequireAuth>;
 }

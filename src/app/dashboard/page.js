@@ -2,22 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import RequireAuth from "@/components/RequireAuth";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [userId, setUserId] = useState(null);
 
-  useEffect(() => {
-    // ログイン状態の確認
-    const storedUserId = localStorage.getItem("userId");
-    if (!storedUserId) {
-      router.push("/"); // 未ログインの場合はログインページへリダイレクト
-      return;
-    }
-    setUserId(storedUserId);
-  }, [router]);
-
-  return (
+  const content = (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">ダッシュボード</h1>
@@ -47,4 +38,6 @@ export default function DashboardPage() {
       </div>
     </div>
   );
+
+  return <RequireAuth>{content}</RequireAuth>;
 }

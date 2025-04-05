@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import RequireAuth from "@/components/RequireAuth";
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function ProjectsPage() {
     );
   }
 
-  return (
+  const content = (
     <div className="py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex justify-between items-center">
@@ -135,4 +136,6 @@ export default function ProjectsPage() {
       </div>
     </div>
   );
+
+  return <RequireAuth>{content}</RequireAuth>;
 }

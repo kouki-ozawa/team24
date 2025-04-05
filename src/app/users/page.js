@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import RequireAuth from "@/components/RequireAuth";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
@@ -115,7 +116,7 @@ export default function UsersPage() {
     }));
   };
 
-  return (
+  const content = (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
@@ -337,4 +338,6 @@ export default function UsersPage() {
       </div>
     </div>
   );
+
+  return <RequireAuth>{content}</RequireAuth>;
 }
