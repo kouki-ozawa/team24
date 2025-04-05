@@ -4,13 +4,25 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import RequireAuth from "@/components/RequireAuth";
+
+const ITEMS_PER_PAGE = 9;
+const DEFAULT_EMPTY_PROJECTS = 9;
+
+const ProgressTab = {
+  ALL: "all",
+  COMPLETED: "completed",
+  YELLOW: "yellow",
+  RED: "red",
+};
 
 export default function ProjectsPage() {
   const router = useRouter();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [activeTab, setActiveTab] = useState(ProgressTab.ALL);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -20,7 +32,23 @@ export default function ProjectsPage() {
         );
         if (!response.ok) throw new Error("プロジェクトの取得に失敗しました");
         const data = await response.json();
-        setProjects(data);
+        
+        // プロジェクトが空の場合はデフォルトの空プロジェクトを生成
+        if (data.length === 0) {
+          const emptyProjects = Array(DEFAULT_EMPTY_PROJECTS).fill({
+            name: "",
+            description: "",
+            start_date: "",
+            end_date: "",
+            required_members: null,
+            status: "active"
+          });
+          setProjects(emptyProjects);
+        } else {
+          setProjects(data);
+        }
+        
+        setTotalPages(Math.ceil(data.length / ITEMS_PER_PAGE));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -30,6 +58,32 @@ export default function ProjectsPage() {
 
     fetchProjects();
   }, []);
+
+  const filterProjectsByProgress = (projects) => {
+    switch (activeTab) {
+      case ProgressTab.COMPLETED:
+        return projects.filter(project => project.status === "completed");
+      case ProgressTab.YELLOW:
+        return projects.filter(project => 
+          project.status === "active" && 
+          project.progress >= 30 && 
+          project.progress < 70
+        );
+      case ProgressTab.RED:
+        return projects.filter(project => 
+          project.status === "active" && 
+          (project.progress == null || project.progress < 30)
+        );
+      default:
+        return projects;
+    }
+  };
+
+  const filteredProjects = filterProjectsByProgress(projects);
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   if (loading) {
     return (
@@ -52,7 +106,7 @@ export default function ProjectsPage() {
     );
   }
 
-  const content = (
+  return (
     <div className="py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex justify-between items-center">
@@ -65,66 +119,175 @@ export default function ProjectsPage() {
             </p>
           </div>
           <Button
-            onClick={() => router.push('/projects/create')}
+            onClick={() => router.push('/projects/new')}
             className="bg-blue-600 hover:bg-blue-700"
           >
             新規プロジェクト作成
           </Button>
         </div>
 
+        <div className="mb-6 flex space-x-4 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab(ProgressTab.ALL)}
+            className={`pb-2 px-4 text-sm font-medium ${
+              activeTab === ProgressTab.ALL
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            すべて
+          </button>
+          <button
+            onClick={() => setActiveTab(ProgressTab.COMPLETED)}
+            className={`pb-2 px-4 text-sm font-medium ${
+              activeTab === ProgressTab.COMPLETED
+                ? "text-green-600 border-b-2 border-green-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            完了
+          </button>
+          <button
+            onClick={() => setActiveTab(ProgressTab.YELLOW)}
+            className={`pb-2 px-4 text-sm font-medium ${
+              activeTab === ProgressTab.YELLOW
+                ? "text-yellow-600 border-b-2 border-yellow-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            進行中
+          </button>
+          <button
+            onClick={() => setActiveTab(ProgressTab.RED)}
+            className={`pb-2 px-4 text-sm font-medium ${
+              activeTab === ProgressTab.RED
+                ? "text-red-600 border-b-2 border-red-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            未着手
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
+          {paginatedProjects.map((project) => (
             <Card
               key={project.id}
-              className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-              onClick={() => router.push(`/projects/${project.id}`)}
+              className={`group transition-all duration-300 bg-gradient-to-br from-white via-white to-gray-50/50 border border-gray-200/80 overflow-hidden rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] ${
+                project.start_date && project.end_date && project.required_members != null
+                  ? "cursor-pointer hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-blue-200 hover:scale-[1.02] hover:bg-gradient-to-br hover:from-blue-50/20 hover:via-white hover:to-gray-50/50"
+                  : "opacity-75"
+              }`}
+              onClick={async () => {
+                if (project.start_date && project.end_date && project.required_members != null) {
+                  try {
+                    const response = await fetch(`/api/project/${project.id}`);
+                    if (!response.ok) {
+                      throw new Error("プロジェクトの取得に失敗しました");
+                    }
+                    router.push(`/projects/${project.id}`);
+                  } catch (error) {
+                    console.error("プロジェクトの取得に失敗しました:", error);
+                  }
+                }
+              }}
             >
-              <div className="p-6">
-                <div className="flex justify-between items-start">
+              <div className="p-6 relative">
+                <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">
-                      {project.name}
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-600">
-                      {project.description}
-                    </p>
+                    <h3 className={`text-lg font-semibold ${!project.name ? "text-gray-400" : "text-gray-900"} cursor-default`}>
+                      {project.name || "Project Name"}
+                    </h3>
+                    {!project.name && (
+                      <p className="mt-1 text-sm text-gray-400 cursor-default">
+                        project description
+                      </p>
+                    )}
                   </div>
+                </div>
+                <div className="absolute top-0 right-0 mt-2 mr-3">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      project.status === "active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm transition-all duration-300 cursor-default ${
+                      project.status === "completed"
+                        ? "bg-green-100/90 text-green-800 group-hover:bg-green-200/90 border border-green-200/50"
+                        : "bg-gray-100/90 text-gray-600 group-hover:bg-gray-200/90 border border-gray-200/50"
                     }`}
                   >
                     {project.status === "active" ? "進行中" : "完了"}
                   </span>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">期間</p>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {project.start_date} 〜 {project.end_date}
+                {project.name && (
+                  <div className="mb-6">
+                    <p className="mt-2 text-sm text-gray-600/90 line-clamp-2 cursor-default">
+                      {project.description}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">
+                )}
+
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-gradient-to-br from-white to-gray-50/30 p-3 rounded-xl shadow-[0_2px_8px_rgb(0,0,0,0.02)] border border-gray-100/80 group-hover:border-gray-200/80 group-hover:shadow-[0_2px_8px_rgb(0,0,0,0.04)] transition-all duration-300">
+                    <p className="text-sm font-medium text-gray-700 cursor-default">期間</p>
+                    <p className="mt-1.5 text-sm text-gray-900 cursor-default">
+                      {project.start_date && project.end_date ? (
+                        `${project.start_date} 〜 ${project.end_date}`
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-gray-400 -ml-[2px]">
+                          <span className="font-mono">_</span>
+                          <span className="text-gray-300">/</span>
+                          <span className="font-mono">_</span>
+                          <span className="text-gray-300">/</span>
+                          <span className="font-mono">_</span>
+                          <span className="mx-2 text-gray-300">〜</span>
+                          <span className="font-mono">_</span>
+                          <span className="text-gray-300">/</span>
+                          <span className="font-mono">_</span>
+                          <span className="text-gray-300">/</span>
+                          <span className="font-mono">_</span>
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="bg-gradient-to-br from-white to-gray-50/30 p-3 rounded-xl shadow-[0_2px_8px_rgb(0,0,0,0.02)] border border-gray-100/80 group-hover:border-gray-200/80 group-hover:shadow-[0_2px_8px_rgb(0,0,0,0.04)] transition-all duration-300">
+                    <p className="text-sm font-medium text-gray-700 cursor-default">
                       メンバー
                     </p>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {project.members?.length || 0} /{" "}
-                      {project.required_members}名
+                    <p className="mt-1.5 text-sm text-gray-900 cursor-default">
+                      {project.required_members != null ? (
+                        <>
+                          <span className="font-semibold">{project.members?.length || 0}</span>
+                          <span className="mx-1">/</span>
+                          <span className="font-semibold">{project.required_members}</span>
+                          <span className="ml-0.5">名</span>
+                        </>
+                      ) : (
+                        <span className="flex justify-end text-gray-400">
+                          <span className="font-semibold">0</span>
+                          <span className="mx-1">/</span>
+                          <span className="font-semibold">0</span>
+                          <span className="ml-0.5">名</span>
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <p className="text-sm font-medium text-gray-500">進捗</p>
-                  <div className="mt-1">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <p className="text-sm font-medium text-gray-700 cursor-default">進捗</p>
+                    <span className="text-sm font-semibold text-gray-900 cursor-default">{project.progress != null ? `${project.progress}%` : '--％'}</span>
+                  </div>
+                  <div className="relative">
+                    <div className="w-full bg-gray-100/80 rounded-full h-3 overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)]">
                       <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${project.progress}%` }}
+                        className={`h-3 rounded-full transition-all duration-300 ${
+                          project.progress == null || project.progress < 30
+                            ? "bg-gradient-to-r from-red-500 to-red-400 group-hover:from-red-600 group-hover:to-red-500 shadow-[0_1px_2px_rgba(239,68,68,0.2)]"
+                            : project.progress < 70
+                            ? "bg-gradient-to-r from-yellow-500 to-yellow-400 group-hover:from-yellow-600 group-hover:to-yellow-500 shadow-[0_1px_2px_rgba(234,179,8,0.2)]"
+                            : "bg-gradient-to-r from-green-500 to-green-400 group-hover:from-green-600 group-hover:to-green-500 shadow-[0_1px_2px_rgba(34,197,94,0.2)]"
+                        }`}
+                        style={{ width: `${project.progress ?? 0}%` }}
                       ></div>
                     </div>
                   </div>
@@ -133,9 +296,29 @@ export default function ProjectsPage() {
             </Card>
           ))}
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-8 flex justify-center space-x-2">
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 w-10 h-10 flex items-center justify-center"
+            >
+              <span className="text-2xl font-black">◀</span>
+            </Button>
+            <span className="flex items-center px-4 text-gray-700">
+              {currentPage} / {totalPages}
+            </span>
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 w-10 h-10 flex items-center justify-center"
+            >
+              <span className="text-2xl font-black">▶</span>
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
-
-  return <RequireAuth>{content}</RequireAuth>;
 }
