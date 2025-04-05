@@ -29,7 +29,7 @@ export const useUser = (id) => {
   
   // APIエンドポイントを調整
   // 正しいパスの例: '/api/user/{id}'
-  const apiUrl = id ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/api$/, '')}/api/user/${id}` : null;
+  const apiUrl = id ? `${process.env.NEXT_PUBLIC_API_URL}/user/${id}` : null;
   console.log('Adjusted API URL:', apiUrl);
   
   // SWRでデータ取得
