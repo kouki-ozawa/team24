@@ -153,7 +153,7 @@ export default function ProjectsPage() {
                     if (!response.ok)
                       throw new Error("プロジェクトの取得に失敗しました");
                     const data = await response.json();
-                    router.push(`/projects/id/${project.id}`);
+                    router.push(`/projects/${project.id}`);
                   } catch (err) {
                     console.error("プロジェクトの取得に失敗しました:", err);
                   }
