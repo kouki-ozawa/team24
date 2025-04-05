@@ -45,14 +45,19 @@ export default function Sidebar() {
       icon: <LayoutDashboard className="w-5 h-5" />,
     },
     {
+      name: "マイアカウント",
+      href: "/users",
+      icon: <Users className="w-5 h-5" />,
+    },
+    {
       name: "スキル診断",
       href: "/questions",
       icon: <Brain className="w-5 h-5" />,
     },
     {
-      name: "ユーザー管理",
-      href: "/users",
-      icon: <Users className="w-5 h-5" />,
+      name: "タスク管理",
+      href: "/tasks",
+      icon: <CheckSquare className="w-5 h-5" />,
     },
     {
       name: "プロジェクト管理",
