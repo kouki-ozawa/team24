@@ -126,12 +126,6 @@ export default function Sidebar() {
           })}
         </nav>
       </div>
-      
-      {/* バージョン情報 */}
-      <div className={`p-4 border-t text-gray-400 text-xs ${isCollapsed ? 'text-center' : ''}`}>
-        {!isCollapsed && <div>SkillMatch v1.0</div>}
-        {isCollapsed && <div>v1.0</div>}
-      </div>
     </div>
   );
 }
