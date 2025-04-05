@@ -201,7 +201,7 @@ export default function ProjectsPage() {
                     if (!response.ok)
                       throw new Error("プロジェクトの取得に失敗しました");
                     const data = await response.json();
-                    router.push(`/projects/${project.id}`);
+                    router.push(`/projects/${project.id}/manage`);
                   } catch (err) {
                     console.error("プロジェクトの取得に失敗しました:", err);
                   }
