@@ -6,55 +6,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { use } from "react";
+import { ProjectMessageList } from "@/components/Project/ProjectMessage";
+import ProjectTask from "@/components/Project/ProjectTask";
+import useProjectDetail from "@/hooks/useProjectDetail";
 
 export default function ProjectDetailPage({ params }) {
   const router = useRouter();
-  const [project, setProject] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const projectId = use(params).id;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // プロジェクトデータの取得
-        const projectResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/project/${projectId}`
-        );
-        if (!projectResponse.ok)
-          throw new Error("プロジェクトの取得に失敗しました");
-        const projectData = await projectResponse.json();
-        setProject(projectData);
-
-        // タスクデータの取得
-        const tasksResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/tasks/project/${projectId}`
-        );
-        console.log("Tasks Response Status:", tasksResponse.status);
-        const tasksData = await tasksResponse.json();
-        console.log("Raw Tasks Data:", tasksData);
-
-        // タスクデータの処理
-        if (Array.isArray(tasksData)) {
-          setTasks(tasksData);
-        } else if (tasksData.tasks) {
-          setTasks(tasksData.tasks);
-        } else {
-          console.log("Unexpected tasks data structure:", tasksData);
-          setTasks([]);
-        }
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [projectId]);
+  const { project, tasks, loading, error } = useProjectDetail(projectId);
 
   if (loading) {
     return (
@@ -157,32 +118,6 @@ export default function ProjectDetailPage({ params }) {
                 </div>
               </div>
             </div>
-
-            {/* <div className="bg-gray-50 rounded-lg shadow-sm p-8 space-y-8">
-              <h2 className="text-2xl font-semibold text-gray-800">リソース</h2>
-              <div className="space-y-8">
-                <div>
-                  <p className="text-sm font-medium text-gray-500 mb-2">画像</p>
-                  <p className="text-gray-900 font-medium text-lg">
-                    {project.image || "未設定"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 mb-2">
-                    ドキュメント
-                  </p>
-                  <p className="text-gray-900 font-medium text-lg">
-                    {project.document || "未設定"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 mb-2">参照</p>
-                  <p className="text-gray-900 font-medium text-lg">
-                    {project.reference || "未設定"}
-                  </p>
-                </div>
-              </div>
-            </div> */}
           </div>
 
           <div className="bg-gray-50 rounded-lg shadow-sm p-8">
@@ -192,37 +127,7 @@ export default function ProjectDetailPage({ params }) {
             {tasks && tasks.length > 0 ? (
               <div className="space-y-4">
                 {tasks.map((task) => (
-                  <div
-                    key={task._id || task.id}
-                    className="bg-white rounded-lg p-6 shadow-sm"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          {task.title || "タイトルなし"}
-                        </h3>
-                        <p className="text-gray-600">
-                          {task.description || "説明なし"}
-                        </p>
-                        <div className="mt-4 flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">期限:</span>
-                            <span className="text-sm font-medium">
-                              {task.deadline || "未設定"}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">
-                              ステータス:
-                            </span>
-                            <span className="text-sm font-medium">
-                              {task.status || "未設定"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <ProjectTask key={task._id || task.id} task={task} />
                 ))}
               </div>
             ) : (
@@ -231,6 +136,8 @@ export default function ProjectDetailPage({ params }) {
               </p>
             )}
           </div>
+
+          <ProjectMessageList projectId={projectId}></ProjectMessageList>
         </div>
       </div>
     </div>

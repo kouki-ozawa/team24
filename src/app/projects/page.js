@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import useFetchProjects from "@/hooks/useFetchProject";
 
 const ITEMS_PER_PAGE = 9;
 const DEFAULT_EMPTY_PROJECTS = 9;
@@ -17,44 +18,10 @@ const ProgressTab = {
 
 export default function ProjectsPage() {
   const router = useRouter();
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+
+  const { projects, loading, error, currentPage, totalPages, setCurrentPage } =
+    useFetchProjects();
   const [activeTab, setActiveTab] = useState(ProgressTab.ALL);
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await fetch(
-          "https://skill-match-api-mongo.onrender.com/api/project"
-        );
-        if (!response.ok) throw new Error("プロジェクトの取得に失敗しました");
-        const data = await response.json();
-        // APIのレスポンスを現在のプロジェクト形式にマッピング
-        const mappedProjects = data.map((project) => ({
-          id: project.id,
-          name: project.title,
-          description: project.description,
-          start: project.start,
-          deadline: project.deadline,
-          required_members: project.required_members || null,
-          status: project.status || "active",
-          progress: project.progress || 0,
-          members: project.members || [],
-        }));
-        setProjects(mappedProjects);
-        setTotalPages(Math.ceil(mappedProjects.length / ITEMS_PER_PAGE));
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProjects();
-  }, []);
 
   const filterProjectsByProgress = (projects) => {
     switch (activeTab) {
