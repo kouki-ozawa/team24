@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import useProject from "@/hooks/useProject";
+import { useSearchParams } from "next/navigation";
+import { ProjectMessageList } from "@/components/ProjectMessage";
 
-export default function ProjectDetailPage({ params }) {
+export default function ProjectDetailPage() {
   const router = useRouter();
-  console.log(params);
-  const { project_id } = params;
+  const searchParams = useSearchParams();
+  const project_id = searchParams.get("project_id");
+  console.log("project_id", project_id);
+
   const { project, loading, error } = useProject(project_id);
 
   if (loading) {
@@ -64,7 +67,7 @@ export default function ProjectDetailPage({ params }) {
         </Card>
 
         <h2 className="text-xl font-bold mb-4">メッセージ一覧</h2>
-        {/* <ProjectMessageList projectId={project_id} /> */}
+        <ProjectMessageList projectId={project_id} />
       </div>
     </div>
   );
