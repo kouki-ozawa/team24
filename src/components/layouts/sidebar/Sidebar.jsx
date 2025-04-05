@@ -59,6 +59,11 @@ export default function Sidebar() {
       href: "/projects",
       icon: <FolderKanban className="w-5 h-5" />,
     },
+    {
+      name: "タスク一覧",
+      href: "/tasks",
+      icon: <Menu className="w-5 h-5" />,
+    },
   ];
 
   return (
