@@ -3,12 +3,15 @@
 import React, { useState } from "react";
 import { useProjectMessages } from "@/hooks/useProjectMessage";
 import { useSWRConfig } from "swr";
+import { Pencil, X, Check, Trash2 } from "lucide-react";
 
 export const ProjectMessageList = ({ projectId }) => {
   const { mutate } = useSWRConfig();
   const { messages, loading, error } = useProjectMessages(projectId);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editingContent, setEditingContent] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,16 +20,18 @@ export const ProjectMessageList = ({ projectId }) => {
     setSending(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/messages`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/message`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: localStorage.getItem("user_id"),
+          title: "メッセージ",
+          description: newMessage,
           project_id: projectId,
-          context: newMessage,
-          data: new Date().toISOString(),
+          status: "active",
+          deadline: new Date().toISOString().split('T')[0],
+          assignee: localStorage.getItem("user_id") || "未割り当て"
         }),
       });
 
@@ -43,6 +48,65 @@ export const ProjectMessageList = ({ projectId }) => {
     setSending(false);
   };
 
+  const handleEdit = (message) => {
+    setEditingMessageId(message._id);
+    setEditingContent(message.context);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditingContent("");
+  };
+
+  const handleUpdateMessage = async (messageId) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/message/${messageId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          description: editingContent,
+          status: "active",
+          deadline: new Date().toISOString().split('T')[0]
+        }),
+      });
+
+      if (res.ok) {
+        setEditingMessageId(null);
+        setEditingContent("");
+        mutate(); // 再取得してUI更新
+      } else {
+        console.error("更新失敗");
+      }
+    } catch (err) {
+      console.error("エラー:", err);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm("このメッセージを削除してもよろしいですか？")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/message/${messageId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (res.ok) {
+        mutate(); // 再取得してUI更新
+      } else {
+        console.error("削除失敗");
+      }
+    } catch (err) {
+      console.error("エラー:", err);
+    }
+  };
+
   return (
     <div className="space-y-6 p-4">
       {/* メッセージ一覧 */}
@@ -51,7 +115,7 @@ export const ProjectMessageList = ({ projectId }) => {
       ) : error ? (
         <p className="text-red-500">エラー: {error}</p>
       ) : messages.length === 0 ? (
-        <p className="text-gray-400">メッセージはありません。</p>
+        <p className="text-gray-400">No Message</p>
       ) : (
         <div className="space-y-4">
           {messages.map((msg) => (
@@ -61,13 +125,60 @@ export const ProjectMessageList = ({ projectId }) => {
             >
               <div className="flex justify-between items-center mb-2">
                 <p className="text-sm font-semibold text-blue-600">
-                  {msg.user_name}
+                  {msg.assignee || "未割り当て"}
                 </p>
-                <p className="text-xs text-gray-400">
-                  {new Date(msg.data).toLocaleString()}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-gray-400">
+                    {msg.deadline}
+                  </p>
+                  {msg.assignee === localStorage.getItem("user_id") && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(msg)}
+                        className="text-gray-400 hover:text-gray-600"
+                        title="編集"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMessage(msg._id)}
+                        className="text-red-400 hover:text-red-600"
+                        title="削除"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="text-gray-800">{msg.context}</p>
+              {editingMessageId === msg._id ? (
+                <div className="space-y-2">
+                  <textarea
+                    className="w-full p-2 border border-gray-300 rounded-md resize-none"
+                    value={editingContent}
+                    onChange={(e) => setEditingContent(e.target.value)}
+                    rows={3}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={handleCancelEdit}
+                      className="text-gray-500 hover:text-gray-700 p-1"
+                      title="キャンセル"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleUpdateMessage(msg._id)}
+                      className="text-green-500 hover:text-green-700 p-1"
+                      title="保存"
+                    >
+                      <Check className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-800">{msg.description}</p>
+              )}
             </div>
           ))}
         </div>

@@ -7,15 +7,45 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { use } from "react";
 import { ProjectMessageList } from "@/components/Project/ProjectMessage";
-import ProjectTask from "@/components/Project/ProjectTask";
-import useProjectDetail from "@/hooks/useProjectDetail";
+import { ProjectTaskList } from "@/components/Project/ProjectTask";
 
 export default function ProjectDetailPage({ params }) {
   const router = useRouter();
+  const [project, setProject] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const projectId = use(params).id;
 
-  const { project, tasks, loading, error } = useProjectDetail(projectId);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // プロジェクトデータの取得
+        const projectResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/project/${projectId}`);
+        if (!projectResponse.ok) throw new Error("プロジェクトの取得に失敗しました");
+        const projectData = await projectResponse.json();
+        setProject(projectData);
+
+        // タスクデータの取得
+        const tasksResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/project/${projectId}`);
+        if (!tasksResponse.ok) throw new Error("タスクの取得に失敗しました");
+        const tasksData = await tasksResponse.json();
+        setTasks(tasksData);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [projectId]);
+
+  const handleTasksChange = (newTasks) => {
+    setTasks(newTasks);
+  };
 
   if (loading) {
     return (
@@ -121,23 +151,17 @@ export default function ProjectDetailPage({ params }) {
           </div>
 
           <div className="bg-gray-50 rounded-lg shadow-sm p-8">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-8">
-              タスク一覧
-            </h2>
-            {tasks && tasks.length > 0 ? (
-              <div className="space-y-4">
-                {tasks.map((task) => (
-                  <ProjectTask key={task._id || task.id} task={task} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-600 text-center py-8">
-                タスクはまだ登録されていません
-              </p>
-            )}
+            <ProjectTaskList
+              projectId={projectId}
+              tasks={tasks}
+              onTasksChange={handleTasksChange}
+            />
           </div>
 
-          <ProjectMessageList projectId={projectId}></ProjectMessageList>
+          <div className="bg-gray-50 rounded-lg shadow-sm p-8 mt-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-8">メッセージ</h2>
+            <ProjectMessageList projectId={projectId} />
+          </div>
         </div>
       </div>
     </div>
