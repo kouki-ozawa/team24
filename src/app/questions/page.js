@@ -200,12 +200,26 @@ export default function Home() {
                     className="space-y-4"
                   >
                     {options.map((option) => (
-                      <div key={option.value} className="flex items-center space-x-3">
+                      <div
+                        key={option.value}
+                        className={`flex items-center space-x-3 p-2 rounded-lg ${answers[q.Question_ID] === option.value
+                            ? "bg-blue-100"
+                            : "bg-white"
+                          }`}
+                      >
                         <RadioGroupItem
                           value={option.value}
                           id={`q-${q.Question_ID}-opt-${option.value}`}
+                          className={`w-4 h-4 rounded-full border-2 ${answers[q.Question_ID] === option.value
+                              ? "border-blue-500"
+                              : "border-gray-400"
+                            }`}
                         />
-                        <Label htmlFor={`q-${q.Question_ID}-opt-${option.value}`}>
+                        <Label htmlFor={`q-${q.Question_ID}-opt-${option.value}`}
+                          className={`cursor-pointer ${answers[q.Question_ID] === option.value
+                              ? "border-blue-600"
+                              : "text-gray-700"
+                            }`}>
                           {option.label}
                         </Label>
                       </div>
@@ -237,7 +251,9 @@ export default function Home() {
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                       <div
                         className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
-                        style={{ width: `${(value / 5) * 100}%` }}
+                        style={{
+                          width: `${Math.min(Math.max(Number(value), 0), 5) / 5 * 100}%`,
+                        }}
                       />
                     </div>
                   </div>
