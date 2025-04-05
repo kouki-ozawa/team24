@@ -56,6 +56,8 @@ export default function Auth({ setUserId }) {
       } else {
         alert("アカウント作成に成功しました。ログインしてください。");
         setIsLogin(true);
+        // 登録フォームをリセット
+        setFormData({ email: "", password: "" });
       }
     } catch (err) {
       setError(err.message);

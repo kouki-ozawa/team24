@@ -1,341 +1,199 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import Link from "next/link";
 import RequireAuth from "@/components/RequireAuth";
+import { useLocalStorage } from "@/components/utils/UseLocalStorage";
+import { Search, RefreshCw, PenSquare, Trash2 } from "lucide-react";
 
 export default function UsersPage() {
+  const router = useRouter();
+  const { value: userId } = useLocalStorage("userId");
+  
   const [users, setUsers] = useState([]);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    technical_skill: 3,
-    problem_solving_ability: 3,
-    communication_skill: 3,
-    security_awareness: 3,
-    leadership_and_collaboration: 3,
-    learning_and_adaptability: 3,
-    engineer_type_id: 1
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  const [showForm, setShowForm] = useState(false);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   // ユーザー一覧を取得
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   const fetchUsers = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('https://skill-match-api-mock.onrender.com/users');
-      if (!response.ok) throw new Error('ユーザー一覧の取得に失敗しました');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/user`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("ユーザー情報の取得に失敗しました");
+      }
+
       const data = await response.json();
       setUsers(data);
+      setFilteredUsers(data);
     } catch (error) {
-      setMessage({ type: 'error', text: error.message });
-    }
-  };
-
-  const deleteUser = async (userId) => {
-    if (!confirm('このユーザーを削除してもよろしいですか？')) return;
-    
-    try {
-      const response = await fetch(`https://skill-match-api-mock.onrender.com/users/${userId}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) throw new Error('ユーザーの削除に失敗しました');
-      
-      setMessage({ type: 'success', text: 'ユーザーを削除しました！' });
-      fetchUsers(); // ユーザー一覧を更新
-      
-      setTimeout(() => {
-        setMessage({ type: '', text: '' });
-      }, 3000);
-      
-    } catch (error) {
-      setMessage({ type: 'error', text: error.message });
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setMessage({ type: '', text: '' });
-
-    try {
-      const response = await fetch('https://skill-match-api-mock.onrender.com/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) throw new Error('ユーザー登録に失敗しました');
-
-      const data = await response.json();
-      setMessage({ type: 'success', text: 'ユーザーを登録しました！' });
-      setFormData({
-        name: "",
-        email: "",
-        technical_skill: 3,
-        problem_solving_ability: 3,
-        communication_skill: 3,
-        security_awareness: 3,
-        leadership_and_collaboration: 3,
-        learning_and_adaptability: 3,
-        engineer_type_id: 1
-      });
-      
-      // ユーザー一覧を更新
-      fetchUsers();
-      
-      // 3秒後にメッセージを消す
-      setTimeout(() => {
-        setMessage({ type: '', text: '' });
-        setShowForm(false);
-      }, 3000);
-
-    } catch (error) {
-      setMessage({ type: 'error', text: error.message });
+      console.error("ユーザー取得エラー:", error);
+      alert("ユーザー情報の取得に失敗しました。後でもう一度お試しください。");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'range' ? parseInt(value) : value
-    }));
+  // 初期読み込み
+  useEffect(() => {
+    fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 検索機能
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredUsers(users);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = users.filter(
+        (user) =>
+          user.username?.toLowerCase().includes(query) ||
+          user.email?.toLowerCase().includes(query)
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchQuery, users]);
+
+  // ユーザー編集ページへ遷移
+  const handleEditUser = (userId) => {
+    router.push(`/users/${userId}/edit`);
+  };
+
+  // ユーザー削除
+  const handleDeleteUser = async (userId) => {
+    if (!confirm("このユーザーを削除してもよろしいですか？")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/user/${userId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("ユーザーの削除に失敗しました");
+      }
+
+      // 成功したら一覧を更新
+      fetchUsers();
+      alert("ユーザーを削除しました");
+    } catch (error) {
+      console.error("ユーザー削除エラー:", error);
+      alert("ユーザーの削除に失敗しました。もう一度お試しください。");
+    }
   };
 
   const content = (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">ユーザー管理</h1>
-          <Link href="/" className="text-blue-600 hover:underline">
-            ホームに戻る
-          </Link>
-        </div>
-
-        <Button
-          onClick={() => setShowForm(!showForm)}
-          className="mb-6 bg-blue-600 hover:bg-blue-700"
-        >
-          {showForm ? 'フォームを閉じる' : '新しいユーザーを登録します'}
+    <div className="p-6 max-w-6xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">ユーザー管理</h1>
+        <Button onClick={() => router.push("/users/new")} className="bg-blue-600">
+          新規ユーザー作成
         </Button>
+      </div>
 
-        {message.text && (
-          <div className={`mb-6 p-4 rounded ${
-            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
-            {message.text}
-          </div>
-        )}
+      {/* 検索と更新 */}
+      <div className="flex gap-2 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="ユーザー名・メールで検索..."
+            className="pl-10"
+          />
+        </div>
+        <Button variant="outline" onClick={fetchUsers} disabled={isLoading}>
+          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+          更新
+        </Button>
+      </div>
 
-        {showForm && (
-          <Card className="mb-8 p-6">
-            <h2 className="text-xl font-semibold mb-6">新規ユーザー登録</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="name">名前</Label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full mt-1 px-3 py-2 border rounded-md"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="email">メールアドレス</Label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full mt-1 px-3 py-2 border rounded-md"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="technical_skill">
-                    技術スキル: {formData.technical_skill}
-                  </Label>
-                  <input
-                    id="technical_skill"
-                    name="technical_skill"
-                    type="range"
-                    min="1"
-                    max="5"
-                    value={formData.technical_skill}
-                    onChange={handleChange}
-                    className="w-full mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="problem_solving_ability">
-                    問題解決力: {formData.problem_solving_ability}
-                  </Label>
-                  <input
-                    id="problem_solving_ability"
-                    name="problem_solving_ability"
-                    type="range"
-                    min="1"
-                    max="5"
-                    value={formData.problem_solving_ability}
-                    onChange={handleChange}
-                    className="w-full mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="communication_skill">
-                    コミュニケーション: {formData.communication_skill}
-                  </Label>
-                  <input
-                    id="communication_skill"
-                    name="communication_skill"
-                    type="range"
-                    min="1"
-                    max="5"
-                    value={formData.communication_skill}
-                    onChange={handleChange}
-                    className="w-full mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="security_awareness">
-                    セキュリティ意識: {formData.security_awareness}
-                  </Label>
-                  <input
-                    id="security_awareness"
-                    name="security_awareness"
-                    type="range"
-                    min="1"
-                    max="5"
-                    value={formData.security_awareness}
-                    onChange={handleChange}
-                    className="w-full mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="leadership_and_collaboration">
-                    リーダーシップと協調性: {formData.leadership_and_collaboration}
-                  </Label>
-                  <input
-                    id="leadership_and_collaboration"
-                    name="leadership_and_collaboration"
-                    type="range"
-                    min="1"
-                    max="5"
-                    value={formData.leadership_and_collaboration}
-                    onChange={handleChange}
-                    className="w-full mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="learning_and_adaptability">
-                    学習力と適応力: {formData.learning_and_adaptability}
-                  </Label>
-                  <input
-                    id="learning_and_adaptability"
-                    name="learning_and_adaptability"
-                    type="range"
-                    min="1"
-                    max="5"
-                    value={formData.learning_and_adaptability}
-                    onChange={handleChange}
-                    className="w-full mt-2"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="engineer_type_id">エンジニアタイプ</Label>
-                <select
-                  id="engineer_type_id"
-                  name="engineer_type_id"
-                  value={formData.engineer_type_id}
-                  onChange={handleChange}
-                  className="w-full mt-1 px-3 py-2 border rounded-md"
-                >
-                  <option value="1">フロントエンドエンジニア</option>
-                  <option value="2">バックエンドエンジニア</option>
-                  <option value="3">フルスタックエンジニア</option>
-                  <option value="4">インフラエンジニア</option>
-                  <option value="5">データエンジニア</option>
-                </select>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-              >
-                {isLoading ? "登録中..." : "登録する"}
-              </Button>
-            </form>
-          </Card>
-        )}
-
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-6">登録済みユーザー一覧</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+      {/* ユーザーテーブル */}
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">ID</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">ユーザー名</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">メールアドレス</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">登録日</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名前</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メール</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">技術力</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">問題解決力</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">コミュニケーション</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                  <td colSpan={5} className="text-center py-8">
+                    <div className="flex justify-center">
+                      <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
+                    </div>
+                    <p className="mt-2 text-gray-500">読み込み中...</p>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user) => (
-                  <tr key={user.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">{user.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{user.technical_skill}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{user.problem_solving_ability}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{user.communication_skill}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Button
-                        onClick={() => deleteUser(user.id)}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        削除
-                      </Button>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-8 text-gray-500">
+                    {searchQuery ? "検索条件に一致するユーザーが見つかりません" : "ユーザーがいません"}
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr key={user._id} className="border-t hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-500">{user._id.substring(0, 8)}...</td>
+                    <td className="px-4 py-3">{user.username || "未設定"}</td>
+                    <td className="px-4 py-3 text-sm">{user.email || "未設定"}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString('ja-JP') : "不明"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditUser(user._id)}
+                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                        >
+                          <PenSquare className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteUser(user._id)}
+                          className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </div>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 
