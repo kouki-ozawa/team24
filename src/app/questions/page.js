@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import RequireAuth from "@/components/RequireAuth";
+import { useRouter } from "next/navigation";
 import {
   Brain,
   Code,
@@ -15,6 +16,8 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle,
+  Save,
+  User,
 } from "lucide-react";
 
 // アイコンのマップ
@@ -47,8 +50,17 @@ export default function Home() {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [transitionClass, setTransitionClass] = useState("");
+  const router = useRouter();
+  const [userId, setUserId] = useState(null);
+
+  // ユーザーIDを取得
+  useEffect(() => {
+    const storedUserId = localStorage.getItem("userId");
+    setUserId(storedUserId);
+  }, []);
 
   // 質問を取得
   useEffect(() => {
@@ -57,7 +69,6 @@ export default function Home() {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/questions`
         );
-        console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
         if (!response.ok) {
           throw new Error("Failed to fetch questions");
         }
@@ -152,6 +163,82 @@ export default function Home() {
     });
     setIsSubmitted(false);
     setCurrentQuestionIndex(0);
+  };
+
+  // ユーザープロフィールページに移動
+  const goToProfile = () => {
+    if (userId) {
+      router.push(`/users/${userId}`);
+    } else {
+      alert("ユーザーIDが見つかりません。ログインしてください。");
+    }
+  };
+
+  // 診断結果をサーバーに保存
+  const saveResults = async () => {
+    if (!userId) {
+      alert("ユーザーIDが見つかりません。ログインしてください。");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // ユーザー情報を取得して更新するアプローチ
+      const userResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/user/${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!userResponse.ok) {
+        throw new Error("ユーザー情報の取得に失敗しました");
+      }
+
+      const userData = await userResponse.json();
+
+      // スキル評価データを更新
+      const updatedUserData = {
+        ...userData,
+        technical_skill: userSkills.technical_skill,
+        problem_solving_ability: userSkills.problem_solving_ability,
+        communication_skill: userSkills.communication_skill,
+        leadership_and_collaboration: userSkills.leadership_and_collaboration,
+        security_awareness: userSkills.security_awareness,
+        // 診断完了時刻を追加
+        last_assessment_date: new Date().toISOString(),
+      };
+
+      // ユーザー情報を更新
+      const updateResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/user/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedUserData),
+        }
+      );
+
+      if (!updateResponse.ok) {
+        throw new Error("スキル診断結果の保存に失敗しました");
+      }
+
+      alert("スキル診断結果が保存されました");
+
+      // ユーザープロフィールページにリダイレクト
+      router.push(`/users/${userId}`);
+    } catch (error) {
+      console.error("保存エラー:", error);
+      alert("結果の保存中にエラーが発生しました。もう一度お試しください。");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (isLoading) {
@@ -305,9 +392,37 @@ export default function Home() {
                 </div>
               ))}
             </div>
+            <div className="mt-6 flex flex-col sm:flex-row gap-4">
+              <Button
+                onClick={saveResults}
+                disabled={isSaving}
+                className="flex-1 bg-green-600 hover:bg-green-700 flex items-center justify-center"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    保存中...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    結果を保存
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={goToProfile}
+                variant="outline"
+                className="flex-1 flex items-center justify-center"
+              >
+                <User className="w-4 h-4 mr-2" />
+                プロフィールを見る
+              </Button>
+            </div>
             <Button
               onClick={handleReset}
-              className="mt-6 w-full bg-blue-600 hover:bg-blue-700"
+              variant="ghost"
+              className="mt-4 w-full"
             >
               もう一度診断する
             </Button>

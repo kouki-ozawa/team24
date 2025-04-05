@@ -33,7 +33,7 @@ export default function ProjectsPage() {
         if (!response.ok) throw new Error("プロジェクトの取得に失敗しました");
         const data = await response.json();
         // APIのレスポンスを現在のプロジェクト形式にマッピング
-        const mappedProjects = data.map(project => ({
+        const mappedProjects = data.map((project) => ({
           id: project.id,
           name: project.title,
           description: project.description,
@@ -42,7 +42,7 @@ export default function ProjectsPage() {
           required_members: project.required_members || null,
           status: project.status || "active",
           progress: project.progress || 0,
-          members: project.members || []
+          members: project.members || [],
         }));
         setProjects(mappedProjects);
         setTotalPages(Math.ceil(mappedProjects.length / ITEMS_PER_PAGE));
@@ -59,17 +59,19 @@ export default function ProjectsPage() {
   const filterProjectsByProgress = (projects) => {
     switch (activeTab) {
       case ProgressTab.COMPLETED:
-        return projects.filter(project => project.status === "completed");
+        return projects.filter((project) => project.status === "completed");
       case ProgressTab.YELLOW:
-        return projects.filter(project => 
-          project.status === "active" && 
-          project.progress >= 30 && 
-          project.progress < 70
+        return projects.filter(
+          (project) =>
+            project.status === "active" &&
+            project.progress >= 30 &&
+            project.progress < 70
         );
       case ProgressTab.RED:
-        return projects.filter(project => 
-          project.status === "active" && 
-          (project.progress == null || project.progress < 30)
+        return projects.filter(
+          (project) =>
+            project.status === "active" &&
+            (project.progress == null || project.progress < 30)
         );
       default:
         return projects;
@@ -116,7 +118,7 @@ export default function ProjectsPage() {
             </p>
           </div>
           <Button
-            onClick={() => router.push('/projects/new')}
+            onClick={() => router.push("/projects/new")}
             className="bg-blue-600 hover:bg-blue-700"
           >
             新規プロジェクト作成
@@ -178,8 +180,11 @@ export default function ProjectsPage() {
               onClick={async () => {
                 if (project.id) {
                   try {
-                    const response = await fetch(`https://skill-match-api-mongo.onrender.com/api/project/${project.id}`);
-                    if (!response.ok) throw new Error("プロジェクトの取得に失敗しました");
+                    const response = await fetch(
+                      `https://skill-match-api-mongo.onrender.com/api/project/${project.id}`
+                    );
+                    if (!response.ok)
+                      throw new Error("プロジェクトの取得に失敗しました");
                     const data = await response.json();
                     router.push(`/projects/id/${project.id}`);
                   } catch (err) {
@@ -191,7 +196,9 @@ export default function ProjectsPage() {
               <div className="p-6 relative">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className={`text-lg font-semibold ${!project.name ? "text-gray-400" : "text-gray-900"} cursor-default`}>
+                    <h3
+                      className={`text-lg font-semibold ${!project.name ? "text-gray-400" : "text-gray-900"} cursor-default`}
+                    >
                       {project.name || "No Project Name"}
                     </h3>
                   </div>
@@ -210,13 +217,17 @@ export default function ProjectsPage() {
 
                 <div className="mb-6">
                   <p className="mt-2 text-sm text-gray-600/90 line-clamp-2 cursor-default">
-                    {project.description === "" ? "No description" : project.description}
+                    {project.description === ""
+                      ? "No description"
+                      : project.description}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-gradient-to-br from-white to-gray-50/30 p-3 rounded-xl shadow-[0_2px_8px_rgb(0,0,0,0.02)] border border-gray-100/80 group-hover:border-gray-200/80 group-hover:shadow-[0_2px_8px_rgb(0,0,0,0.04)] transition-all duration-300">
-                    <p className="text-sm font-medium text-gray-700 cursor-default">期間</p>
+                    <p className="text-sm font-medium text-gray-700 cursor-default">
+                      期間
+                    </p>
                     <p className="mt-1.5 text-sm text-gray-900 cursor-default">
                       {project.start && project.deadline ? (
                         `${project.start} 〜 ${project.deadline}`
@@ -244,9 +255,13 @@ export default function ProjectsPage() {
                     <p className="mt-1.5 text-sm text-gray-900 cursor-default">
                       {project.required_members != null ? (
                         <>
-                          <span className="font-semibold">{project.members?.length || 0}</span>
+                          <span className="font-semibold">
+                            {project.members?.length || 0}
+                          </span>
                           <span className="mx-1">/</span>
-                          <span className="font-semibold">{project.required_members}</span>
+                          <span className="font-semibold">
+                            {project.required_members}
+                          </span>
                           <span className="ml-0.5">名</span>
                         </>
                       ) : (
@@ -263,8 +278,14 @@ export default function ProjectsPage() {
 
                 <div>
                   <div className="flex justify-between items-center mb-3">
-                    <p className="text-sm font-medium text-gray-700 cursor-default">進捗</p>
-                    <span className="text-sm font-semibold text-gray-900 cursor-default">{project.progress != null ? `${project.progress}%` : '--％'}</span>
+                    <p className="text-sm font-medium text-gray-700 cursor-default">
+                      進捗
+                    </p>
+                    <span className="text-sm font-semibold text-gray-900 cursor-default">
+                      {project.progress != null
+                        ? `${project.progress}%`
+                        : "--％"}
+                    </span>
                   </div>
                   <div className="relative">
                     <div className="w-full bg-gray-100/80 rounded-full h-3 overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)]">
@@ -273,8 +294,8 @@ export default function ProjectsPage() {
                           project.progress == null || project.progress < 30
                             ? "bg-gradient-to-r from-red-500 to-red-400 group-hover:from-red-600 group-hover:to-red-500 shadow-[0_1px_2px_rgba(239,68,68,0.2)]"
                             : project.progress < 70
-                            ? "bg-gradient-to-r from-yellow-500 to-yellow-400 group-hover:from-yellow-600 group-hover:to-yellow-500 shadow-[0_1px_2px_rgba(234,179,8,0.2)]"
-                            : "bg-gradient-to-r from-green-500 to-green-400 group-hover:from-green-600 group-hover:to-green-500 shadow-[0_1px_2px_rgba(34,197,94,0.2)]"
+                              ? "bg-gradient-to-r from-yellow-500 to-yellow-400 group-hover:from-yellow-600 group-hover:to-yellow-500 shadow-[0_1px_2px_rgba(234,179,8,0.2)]"
+                              : "bg-gradient-to-r from-green-500 to-green-400 group-hover:from-green-600 group-hover:to-green-500 shadow-[0_1px_2px_rgba(34,197,94,0.2)]"
                         }`}
                         style={{ width: `${project.progress ?? 0}%` }}
                       ></div>
@@ -299,7 +320,9 @@ export default function ProjectsPage() {
               {currentPage} / {totalPages}
             </span>
             <Button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
               className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 w-10 h-10 flex items-center justify-center"
             >

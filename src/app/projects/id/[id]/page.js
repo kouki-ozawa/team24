@@ -20,16 +20,21 @@ export default function ProjectDetailPage({ params }) {
     const fetchData = async () => {
       try {
         // プロジェクトデータの取得
-        const projectResponse = await fetch(`https://skill-match-api-mongo.onrender.com/api/project/${projectId}`);
-        if (!projectResponse.ok) throw new Error("プロジェクトの取得に失敗しました");
+        const projectResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/project/${projectId}`
+        );
+        if (!projectResponse.ok)
+          throw new Error("プロジェクトの取得に失敗しました");
         const projectData = await projectResponse.json();
         setProject(projectData);
 
         // タスクデータの取得
-        const tasksResponse = await fetch(`https://skill-match-api-mongo.onrender.com/api/task/${projectId}`);
-        console.log('Tasks Response Status:', tasksResponse.status);
+        const tasksResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/tasks/project/${projectId}`
+        );
+        console.log("Tasks Response Status:", tasksResponse.status);
         const tasksData = await tasksResponse.json();
-        console.log('Raw Tasks Data:', tasksData);
+        console.log("Raw Tasks Data:", tasksData);
 
         // タスクデータの処理
         if (Array.isArray(tasksData)) {
@@ -37,7 +42,7 @@ export default function ProjectDetailPage({ params }) {
         } else if (tasksData.tasks) {
           setTasks(tasksData.tasks);
         } else {
-          console.log('Unexpected tasks data structure:', tasksData);
+          console.log("Unexpected tasks data structure:", tasksData);
           setTasks([]);
         }
       } catch (err) {
@@ -120,46 +125,70 @@ export default function ProjectDetailPage({ params }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div className="bg-gray-50 rounded-lg shadow-sm p-8 space-y-8">
-              <h2 className="text-2xl font-semibold text-gray-800">プロジェクト情報</h2>
+              <h2 className="text-2xl font-semibold text-gray-800">
+                プロジェクト情報
+              </h2>
               <div className="space-y-8">
                 <div className="grid grid-cols-2 gap-8">
                   <div>
-                    <p className="text-sm font-medium text-gray-500 mb-2">開始日</p>
-                    <p className="text-gray-900 font-medium text-lg">{project.start || "未設定"}</p>
+                    <p className="text-sm font-medium text-gray-500 mb-2">
+                      開始日
+                    </p>
+                    <p className="text-gray-900 font-medium text-lg">
+                      {project.start || "未設定"}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500 mb-2">終了日</p>
-                    <p className="text-gray-900 font-medium text-lg">{project.deadline || "未設定"}</p>
+                    <p className="text-sm font-medium text-gray-500 mb-2">
+                      終了日
+                    </p>
+                    <p className="text-gray-900 font-medium text-lg">
+                      {project.deadline || "未設定"}
+                    </p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500 mb-2">メンバー</p>
-                  <p className="text-gray-900 font-medium text-lg">{project.members || "未設定"}</p>
+                  <p className="text-sm font-medium text-gray-500 mb-2">
+                    メンバー
+                  </p>
+                  <p className="text-gray-900 font-medium text-lg">
+                    {project.members || "未設定"}
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-lg shadow-sm p-8 space-y-8">
+            {/* <div className="bg-gray-50 rounded-lg shadow-sm p-8 space-y-8">
               <h2 className="text-2xl font-semibold text-gray-800">リソース</h2>
               <div className="space-y-8">
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-2">画像</p>
-                  <p className="text-gray-900 font-medium text-lg">{project.image || "未設定"}</p>
+                  <p className="text-gray-900 font-medium text-lg">
+                    {project.image || "未設定"}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500 mb-2">ドキュメント</p>
-                  <p className="text-gray-900 font-medium text-lg">{project.document || "未設定"}</p>
+                  <p className="text-sm font-medium text-gray-500 mb-2">
+                    ドキュメント
+                  </p>
+                  <p className="text-gray-900 font-medium text-lg">
+                    {project.document || "未設定"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-2">参照</p>
-                  <p className="text-gray-900 font-medium text-lg">{project.reference || "未設定"}</p>
+                  <p className="text-gray-900 font-medium text-lg">
+                    {project.reference || "未設定"}
+                  </p>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           <div className="bg-gray-50 rounded-lg shadow-sm p-8">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-8">タスク一覧</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-8">
+              タスク一覧
+            </h2>
             {tasks && tasks.length > 0 ? (
               <div className="space-y-4">
                 {tasks.map((task) => (
@@ -183,7 +212,9 @@ export default function ProjectDetailPage({ params }) {
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">ステータス:</span>
+                            <span className="text-sm text-gray-500">
+                              ステータス:
+                            </span>
                             <span className="text-sm font-medium">
                               {task.status || "未設定"}
                             </span>
@@ -204,4 +235,4 @@ export default function ProjectDetailPage({ params }) {
       </div>
     </div>
   );
-} 
+}
