@@ -106,6 +106,21 @@ export default function ProjectsPage() {
   }
 
   return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+      {projects.map((project) => (
+        <Link
+          href={`/projects/${project.id}/manage`}
+          key={project.id}
+          className="block rounded-xl shadow-md p-4 transition hover:scale-105 bg-white border-t-4"
+          style={{ borderTopColor: project.color || "#3b82f6" }} // default to blue-500
+        >
+          <h2 className="text-xl font-semibold mb-1">{project.title}</h2>
+          <p className="text-sm text-gray-800 mb-2">{project.description}</p>
+          <p className="text-sm text-gray-600">
+            締切: {new Date(project.deadline).toLocaleDateString()}
+          </p>
+        </Link>
+      ))}
     <div className="py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex justify-between items-center">
@@ -186,7 +201,7 @@ export default function ProjectsPage() {
                     if (!response.ok)
                       throw new Error("プロジェクトの取得に失敗しました");
                     const data = await response.json();
-                    router.push(`/projects/${project.id}`);
+                    router.push(`/projects/${project.id}/manage`);
                   } catch (err) {
                     console.error("プロジェクトの取得に失敗しました:", err);
                   }
