@@ -11,7 +11,7 @@ export const useProjectMessages = (projectId, skip = 0, limit = 10) => {
     const fetchMessages = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/messages/project/${projectId}?skip=${skip}&limit=${limit}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/message/project/${projectId}?skip=${skip}&limit=${limit}`
         );
         if (!res.ok) throw new Error("メッセージの取得に失敗しました");
         const data = await res.json();
