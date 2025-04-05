@@ -147,7 +147,7 @@ export default function Home() {
 //                     htmlFor="remember-me"
 //                     className="ml-2 block text-sm text-gray-900"
 //                   >
-//                     ログイン状態を保持
+//                     状態を保持
 //                   </label>
 //                 </div>
 

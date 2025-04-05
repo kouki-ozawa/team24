@@ -3,68 +3,66 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { User } from "lucide-react";
+import { useLocalStorage } from "@/components/utils/UseLocalStorage";
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const { value: userId, removeValue: removeUserId, isLoading } = useLocalStorage("userId");
 
-  // ログインページとユーザー登録ページではナビゲーションを表示しない
-  if (pathname === "/" || pathname === "/users/register") {
+  // ログインページではナビゲーションを表示しない
+  if (pathname === "/" ) {
     return null;
   }
 
-  const navigation = [
-    { name: "スキル診断", href: "/questions" },
-    { name: "ユーザー管理", href: "/users" },
-    { name: "プロジェクト管理", href: "/projects" },
-  ];
-
   const handleLogout = () => {
     // ローカルストレージからIDを消去
-    localStorage.removeItem('userId');  // もしくは使用しているキー名に応じて変更
+    removeUserId();
     
     // ルートページへ遷移
     router.push("/");
   };
 
-  return (
-    <header className="bg-white shadow-sm">
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center">
-            <Link
-              href="/dashboard"
-              className="text-xl font-bold text-gray-900"
-            >
-              SkillMatch
-            </Link>
-            <div className="ml-10 hidden space-x-4 sm:flex">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`${
-                    pathname === item.href
-                      ? "text-blue-600"
-                      : "text-gray-600 hover:text-gray-900"
-                  } px-3 py-2 text-sm font-medium`}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              ログアウト
-            </Button>
-          </div>
+  if (isLoading) {
+    return (
+      <header className="bg-white border-b">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="text-xl font-bold text-gray-900">読み込み中...</div>
+          <div className="w-20 h-8 bg-gray-200 animate-pulse rounded"></div>
         </div>
-      </nav>
+      </header>
+    );
+  }
+
+  return (
+    <header className="bg-white border-b">
+      <div className="px-4 py-3 flex items-center justify-between">
+        <div className="text-xl font-bold text-gray-900">
+          {pathname === "/dashboard" && "ダッシュボード"}
+          {pathname === "/questions" && "スキル診断"}
+          {pathname === "/users" && "ユーザー管理"}
+          {pathname === "/projects" && "プロジェクト管理"}
+          {pathname.startsWith("/projects/create") && "プロジェクト作成"}
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <User className="w-4 h-4 text-blue-600" />
+            </div>
+            <span className="text-sm font-medium text-gray-700">
+              {userId ? `ID: ${userId}` : 'ゲスト'}
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            ログアウト
+          </Button>
+        </div>
+      </div>
     </header>
   );
 }
