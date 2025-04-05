@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckSquare,
+  Menu,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -68,11 +69,6 @@ export default function Sidebar() {
       name: "タスク一覧",
       href: "/tasks",
       icon: <Menu className="w-5 h-5" />,
-    },
-    {
-      name: "ユーザー情報",
-      href: "/",
-      icon: <FolderKanban className="w-5 h-5" />,
     },
   ];
 

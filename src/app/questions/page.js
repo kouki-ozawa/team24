@@ -306,7 +306,35 @@ export default function Home() {
                   <p className="text-gray-700 mb-6">
                     {questions[currentQuestionIndex].Text}
                   </p>
-
+                  <RadioGroup
+  value={answers[questions[currentQuestionIndex].Question_ID] || ""}
+  onValueChange={(value) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [questions[currentQuestionIndex].Question_ID]: value,
+    }));
+    // 選択後に自動的に次の質問に進む
+    setTimeout(() => {
+      handleNext();
+    }, 300); // 少し遅延を入れることで選択が視覚的に確認できる
+  }}
+  className="space-y-4"
+>
+  {options.map((option) => (
+    <div
+      key={option.value}
+      className="flex items-center space-x-3"
+    >
+      <RadioGroupItem
+        value={option.value}
+        id={`option-${option.value}`}
+      />
+      <Label htmlFor={`option-${option.value}`}>
+        {option.label}
+      </Label>
+    </div>
+  ))}
+</RadioGroup>
                   <RadioGroup
                     value={
                       answers[questions[currentQuestionIndex].Question_ID] || ""
