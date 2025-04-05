@@ -29,13 +29,13 @@ const TaskPage = ({ userId }) => {
 
         const fetchData = async () => {
             try {
-                const taskResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/project`);
+                const taskResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/task`);
                 if (!taskResponse.ok) {
                     throw new Error('タスク取得中のネットワークエラー');
                 }
                 const tasksData = await taskResponse.json();
 
-                const projectResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`);
+                const projectResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/project`);
                 if (!projectResponse.ok) {
                     throw new Error('プロジェクト取得中のネットワークエラー');
                 }
