@@ -81,24 +81,6 @@ export default function NewProject() {
   return (
     <div className="py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <button
-          onClick={() => router.back()}
-          className="fixed left-0 top-20 flex items-center text-gray-600 hover:text-gray-900 bg-white/80 backdrop-blur-sm pl-4 pr-6 py-2 rounded-r-full border border-gray-200 shadow-sm"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-2"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-          戻る
-        </button>
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
             新規プロジェクト作成
