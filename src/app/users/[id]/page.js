@@ -74,7 +74,7 @@ export default function UserProfilePage({ params }) {
     
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/user/${userId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/user/${userId}`,
         {
           method: "GET",
           headers: {

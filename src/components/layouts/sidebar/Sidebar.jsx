@@ -64,11 +64,6 @@ export default function Sidebar() {
       href: "/projects",
       icon: <FolderKanban className="w-5 h-5" />,
     },
-    {
-      name: "ユーザー情報",
-      href: "/",
-      icon: <FolderKanban className="w-5 h-5"/>
-    }
   ];
 
   return (
@@ -120,12 +115,6 @@ export default function Sidebar() {
             );
           })}
         </nav>
-      </div>
-      
-      {/* バージョン情報 */}
-      <div className={`p-4 border-t text-gray-400 text-xs ${isCollapsed ? 'text-center' : ''}`}>
-        {!isCollapsed && <div>SkillMatch v1.0</div>}
-        {isCollapsed && <div>v1.0</div>}
       </div>
     </div>
   );
