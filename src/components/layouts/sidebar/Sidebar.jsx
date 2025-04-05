@@ -56,11 +56,6 @@ export default function Sidebar() {
       icon: <Brain className="w-5 h-5" />,
     },
     {
-      name: "タスク管理",
-      href: "/tasks",
-      icon: <CheckSquare className="w-5 h-5" />,
-    },
-    {
       name: "プロジェクト管理",
       href: "/projects",
       icon: <FolderKanban className="w-5 h-5" />,
@@ -70,11 +65,11 @@ export default function Sidebar() {
       href: "/tasks",
       icon: <Menu className="w-5 h-5" />,
     },
-    {
-      name: "ユーザー情報",
-      href: "/",
-      icon: <FolderKanban className="w-5 h-5" />,
-    },
+    // {
+    //   name: "ユーザー情報",
+    //   href: "/",
+    //   icon: <FolderKanban className="w-5 h-5" />,
+    // },
   ];
 
   return (
