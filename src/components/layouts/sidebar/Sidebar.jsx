@@ -7,9 +7,9 @@ import {
   Brain,
   Users,
   FolderKanban,
-  Menu,
   ChevronLeft,
   ChevronRight,
+  CheckSquare,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -64,7 +64,7 @@ export default function Sidebar() {
   return (
     <div
       className={`h-screen bg-white border-r transition-all duration-300 flex flex-col ${
-        isCollapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-20" : "w-64"
       }`}
     >
       {/* ロゴエリア */}
@@ -76,7 +76,11 @@ export default function Sidebar() {
           onClick={toggleCollapse}
           className="flex-shrink-0"
         >
-          {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          {isCollapsed ? (
+            <ChevronRight className="w-6 h-6" />
+          ) : (
+            <ChevronLeft className="w-5 h-5" />
+          )}
         </Button>
       </div>
       
@@ -90,13 +94,15 @@ export default function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   isActive
                     ? "bg-blue-50 text-blue-600"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`}
               >
-                {item.icon}
+                <div className={isCollapsed ? "w-6 h-6" : "w-5 h-5"}>
+                  {item.icon}
+                </div>
                 {!isCollapsed && (
                   <span className="ml-3 truncate">{item.name}</span>
                 )}
@@ -109,6 +115,7 @@ export default function Sidebar() {
       {/* バージョン情報 */}
       <div className={`p-4 border-t text-gray-400 text-xs ${isCollapsed ? 'text-center' : ''}`}>
         {!isCollapsed && <div>SkillMatch v1.0</div>}
+        {isCollapsed && <div>v1.0</div>}
       </div>
     </div>
   );
