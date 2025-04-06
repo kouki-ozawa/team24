@@ -44,6 +44,7 @@ export default function ProjectsPage() {
           status: project.status || "active",
           progress: project.progress || 0,
           members: project.members || [],
+          color: project.color || null,
         }));
         setProjects(mappedProjects);
         setTotalPages(Math.ceil(mappedProjects.length / ITEMS_PER_PAGE));
@@ -184,28 +185,31 @@ export default function ProjectsPage() {
               }
             }}
           >
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3
-                    className={`text-lg font-semibold ${
-                      !project.name ? "text-gray-400" : "text-gray-900"
-                    } cursor-default`}
-                  >
-                    {project.name || "No Project Name"}
-                  </h3>
-                </div>
-              </div>
-              <div className="absolute top-0 right-0 mt-2 mr-3">
-                <span
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm transition-all duration-300 cursor-default ${
-                    project.status === "completed"
-                      ? "bg-green-100/90 text-green-800 group-hover:bg-green-200/90 border border-green-200/50"
-                      : "bg-gray-100/90 text-gray-600 group-hover:bg-gray-200/90 border border-gray-200/50"
-                  }`}
+            <div className="absolute top-0 left-0 w-full h-2" style={{ 
+              background: project.color 
+                ? `linear-gradient(to right, ${project.color}, ${project.color})`
+                : 'linear-gradient(to right, #3B82F6, #3B82F6)'
+            }}></div>
+            <div className="absolute top-2 right-0 p-2">
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm transition-all duration-300 cursor-default ${
+                  project.status === "completed"
+                    ? "bg-green-100/90 text-green-800 group-hover:bg-green-200/90 border border-green-200/50"
+                    : "bg-gray-100/90 text-gray-600 group-hover:bg-gray-200/90 border border-gray-200/50"
+                }`}
+              >
+                {project.status === "active" ? "進行中" : "完了"}
+              </span>
+            </div>
+            <div className="pt-4 px-6">
+              <div className="mb-4">
+                <h3
+                  className={`text-lg font-semibold ${
+                    !project.name ? "text-gray-400" : "text-gray-900"
+                  } cursor-default`}
                 >
-                  {project.status === "active" ? "進行中" : "完了"}
-                </span>
+                  {project.name || "No Project Name"}
+                </h3>
               </div>
 
               <div className="mb-6">
