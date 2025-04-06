@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import useFetchProjects from "@/hooks/useFetchProject";
+import { AlertCircle } from "lucide-react";
 
 const TECH_STACKS = [
   "React",
@@ -109,6 +110,16 @@ export default function NewProject() {
           </p>
         </div>
 
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start">
+          <AlertCircle className="text-blue-500 mr-3 mt-0.5 flex-shrink-0 w-5 h-5" />
+          <div>
+            <h3 className="text-sm font-medium text-blue-800">タスク自動生成機能</h3>
+            <p className="mt-1 text-sm text-blue-700">
+              プロジェクトを作成すると、OpenAI APIが自動的にプロジェクトの説明からタスクを生成します。タスクはプロジェクト作成後に「タスク一覧」ページで確認できます。
+            </p>
+          </div>
+        </div>
+
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -130,15 +141,20 @@ export default function NewProject() {
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                 説明 *
               </label>
-              <textarea
-                id="description"
-                value={projectData.description}
-                onChange={(e) => setProjectData({...projectData, description: e.target.value})}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="プロジェクトの説明を入力"
-                required
-              />
+              <div className="space-y-1">
+                <textarea
+                  id="description"
+                  value={projectData.description}
+                  onChange={(e) => setProjectData({...projectData, description: e.target.value})}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="プロジェクトの説明を入力"
+                  required
+                />
+                <p className="text-xs text-gray-500 italic">
+                  詳細な説明を入力すると、より正確なタスクが自動生成されます。
+                </p>
+              </div>
             </div>
 
             <div>
