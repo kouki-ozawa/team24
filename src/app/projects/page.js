@@ -100,12 +100,21 @@ export default function ProjectsPage() {
   const paginatedProjects = projects
     .filter((project) => {
       if (activeTab === ProgressTab.ALL) return true;
-      if (activeTab === ProgressTab.COMPLETED) return project.status === "completed";
-      if (activeTab === ProgressTab.YELLOW) return project.status === "active";
-      if (activeTab === ProgressTab.RED) return project.status === "not_started";
+      if (activeTab === ProgressTab.COMPLETED) return project.progress === 100;
+      if (activeTab === ProgressTab.YELLOW) return project.progress > 0 && project.progress < 100;
+      if (activeTab === ProgressTab.RED) return project.progress === 0;
       return true;
     })
     .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  // フィルタリングされたプロジェクトの総数を計算
+  const filteredProjectsCount = projects.filter((project) => {
+    if (activeTab === ProgressTab.ALL) return true;
+    if (activeTab === ProgressTab.COMPLETED) return project.progress === 100;
+    if (activeTab === ProgressTab.YELLOW) return project.progress > 0 && project.progress < 100;
+    if (activeTab === ProgressTab.RED) return project.progress === 0;
+    return true;
+  }).length;
 
   if (loading) {
     return (
@@ -236,12 +245,18 @@ export default function ProjectsPage() {
             <div className="absolute top-2 right-0 p-2">
               <span
                 className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm transition-all duration-300 cursor-default ${
-                  project.status === "completed"
+                  project.progress === 100
                     ? "bg-green-100/90 text-green-800 group-hover:bg-green-200/90 border border-green-200/50"
+                    : project.progress > 0
+                    ? "bg-yellow-100/90 text-yellow-800 group-hover:bg-yellow-200/90 border border-yellow-200/50"
                     : "bg-gray-100/90 text-gray-600 group-hover:bg-gray-200/90 border border-gray-200/50"
                 }`}
               >
-                {project.status === "active" ? "進行中" : "完了"}
+                {project.progress === 100
+                  ? "完了"
+                  : project.progress > 0
+                  ? "進行中"
+                  : "新規"}
               </span>
             </div>
             <div className="pt-4 px-6">
