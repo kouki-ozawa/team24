@@ -5,6 +5,7 @@ import Link from "next/link"; // <-- 追加
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { Pencil, Trash2 } from "lucide-react";
 
 const ITEMS_PER_PAGE = 9;
 const DEFAULT_EMPTY_PROJECTS = 9;
@@ -24,6 +25,7 @@ export default function ProjectsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [activeTab, setActiveTab] = useState(ProgressTab.ALL);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     // URLパラメータからページ番号を取得
@@ -68,6 +70,33 @@ export default function ProjectsPage() {
     router.push(`/projects?page=${page}`, { scroll: false });
   };
 
+  const handleDelete = async (projectId) => {
+    if (!confirm("このプロジェクトを削除してもよろしいですか？")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/project/${projectId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("プロジェクトの削除に失敗しました");
+
+      // プロジェクト一覧を更新
+      const updatedProjects = projects.filter(project => project.id !== projectId);
+      setProjects(updatedProjects);
+      setTotalPages(Math.ceil(updatedProjects.length / ITEMS_PER_PAGE));
+      
+      // 現在のページが存在しなくなった場合は、最後のページに移動
+      if (currentPage > Math.ceil(updatedProjects.length / ITEMS_PER_PAGE)) {
+        setCurrentPage(Math.ceil(updatedProjects.length / ITEMS_PER_PAGE));
+      }
+    } catch (err) {
+      console.error("Error deleting project:", err);
+      alert("プロジェクトの削除に失敗しました。もう一度お試しください。");
+    }
+  };
+
   const paginatedProjects = projects
     .filter((project) => {
       if (activeTab === ProgressTab.ALL) return true;
@@ -109,12 +138,23 @@ export default function ProjectsPage() {
             進行中のプロジェクトと完了したプロジェクトを確認できます
           </p>
         </div>
-        <Button
-          onClick={() => router.push("/projects/new")}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          新規プロジェクト作成
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setIsEditing(!isEditing)}
+            className={`flex items-center gap-2 ${
+              isEditing ? "bg-gray-600 hover:bg-gray-700" : "bg-gray-500 hover:bg-gray-600"
+            }`}
+          >
+            <Pencil className="h-4 w-4" />
+            {isEditing ? "編集を終了" : "編集"}
+          </Button>
+          <Button
+            onClick={() => router.push("/projects/new")}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            新規プロジェクト作成
+          </Button>
+        </div>
       </div>
 
       {/* タブフィルタ */}
@@ -172,11 +212,22 @@ export default function ProjectsPage() {
                 : "opacity-75"
             }`}
             onClick={() => {
-              if (project.id) {
+              if (project.id && !isEditing) {
                 router.push(`/projects/${project.id}?page=${currentPage}`, { scroll: true });
               }
             }}
           >
+            {isEditing && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(project.id);
+                }}
+                className="absolute top-2 left-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-all duration-200"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
             <div className="absolute top-0 left-0 w-full h-2" style={{ 
               background: project.color 
                 ? `linear-gradient(to right, ${project.color}, ${project.color})`
