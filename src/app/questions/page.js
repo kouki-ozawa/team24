@@ -216,10 +216,24 @@ export default function Home() {
       }
       const userData = await userRes.json();
 
+      // スキル値を整数に丸める
+      const roundedSkills = {
+        technical_skill: Math.round(userSkills.technical_skill),
+        problem_solving_ability: Math.round(userSkills.problem_solving_ability),
+        communication_skill: Math.round(userSkills.communication_skill),
+        leadership_and_collaboration: Math.round(userSkills.leadership_and_collaboration),
+        frontend_skill: Math.round(userSkills.frontend_skill),
+        backend_skill: Math.round(userSkills.backend_skill),
+        infrastructure_skill: Math.round(userSkills.infrastructure_skill),
+        security_awareness: Math.round(userSkills.security_awareness)
+      };
+
       const updatedUser = {
-        ...userData,
-        ...userSkills,
-        last_assessment_date: new Date().toISOString(),
+        id: userData.id,
+        name: userData.name,
+        ...roundedSkills,
+        image: userData.image || "string",
+        last_assessment_date: new Date().toISOString()
       };
 
       console.log("Updated user data:", updatedUser);
