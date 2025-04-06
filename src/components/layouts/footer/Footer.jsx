@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { Shield, Flame, Code, Target } from "lucide-react";
 
 export default function Footer() {
   const pathname = usePathname();
@@ -14,87 +15,78 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-white border-t">
+    <footer className="bg-card border-t border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="py-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* サービス説明 */}
-            <div className="col-span-1 md:col-span-2">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
+            <div className="col-span-1 md:col-span-1">
+              <h3 className="text-xl font-bold text-primary mb-4 tracking-wider">
                 ProjectYAKUZA
               </h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                ProjectYAKUZAは、エンジニアのスキルを可視化し、
-                キャリア開発をサポートするプラットフォームです。
-                適切なスキル診断と、継続的な成長をサポートします。
+              <p className="text-foreground/80 text-sm leading-relaxed">
+                組織の絆を強め、技術者の実力を見極める。
+                それが我々の流儀。個々の力を最大限に引き出し、
+                一流の仕事をこなす組織づくりをサポートする。
               </p>
             </div>
 
-            {/* クイックリンク
+            {/* クイックリンク */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">
+              <h3 className="text-sm font-semibold text-primary mb-4">
                 クイックリンク
               </h3>
               <ul className="space-y-3">
-                <li>
+                <li className="flex items-center">
+                  <Code className="w-4 h-4 text-accent mr-2" />
                   <a 
-                    href="/skill-match" 
-                    className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                    href="/questions" 
+                    className="text-sm text-foreground/80 hover:text-accent transition-colors"
                   >
                     スキル診断
                   </a>
                 </li>
-                <li>
+                <li className="flex items-center">
+                  <Target className="w-4 h-4 text-accent mr-2" />
                   <a 
-                    href="/users" 
-                    className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                    href="/projects" 
+                    className="text-sm text-foreground/80 hover:text-accent transition-colors"
                   >
-                    ユーザー管理
+                    プロジェクト管理
                   </a>
                 </li>
-                <li>
+                <li className="flex items-center">
+                  <Shield className="w-4 h-4 text-accent mr-2" />
                   <a 
-                    href="#" 
-                    className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                    href="/users" 
+                    className="text-sm text-foreground/80 hover:text-accent transition-colors"
                   >
-                    ヘルプセンター
+                    ユーザー情報
                   </a>
                 </li>
               </ul>
-            </div> */}
+            </div>
 
             {/* お問い合わせ */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">
-                お問い合わせ
+              <h3 className="text-sm font-semibold text-primary mb-4">
+                作成者
               </h3>
               <ul className="space-y-3">
                 <li>
                   <a
-                    href="mailto:support@ProjectYAKUZA.example.com"
-                    className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                    className="text-sm text-foreground/80"
                   >
-                    support@ProjectYAKUZA.example.com
+                    team24(本物)
+                    <br />
+                    【技育CAMP】ハッカソン Vol.2即席チーム
                   </a>
                 </li>
                 <li>
                   <div className="flex space-x-4 mt-4">
                     <a
-                      href="#"
-                      className="text-gray-400 hover:text-blue-600 transition-colors"
-                      aria-label="Twitter"
-                    >
-                      <svg
-                        className="h-5 w-5"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                      </svg>
-                    </a>
-                    <a
-                      href="#"
-                      className="text-gray-400 hover:text-gray-900 transition-colors"
+                      href="https://github.com/kouki-ozawa/team24"
+                      className="text-foreground/50 hover:text-accent transition-colors"
                       aria-label="GitHub"
                     >
                       <svg
@@ -116,29 +108,30 @@ export default function Footer() {
           </div>
 
           {/* 区切り線 */}
-          <div className="border-t border-gray-200 mt-8 pt-8">
+          <div className="border-t border-border mt-8 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-sm text-gray-500">
-                &copy; {currentYear} ProjectYAKUZA. All rights reserved.
+              <p className="text-sm text-foreground/50">
+                &copy; {currentYear} 極道開発組合 ProjectYAKUZA. All rights reserved.
               </p>
               <div className="flex space-x-6 mt-4 md:mt-0">
                 <a
                   href="#"
-                  className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
+                  className="text-sm text-foreground/50 hover:text-accent transition-colors"
                 >
-                  プライバシーポリシー
+                  掟書
                 </a>
                 <a
                   href="#"
-                  className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
+                  className="text-sm text-foreground/50 hover:text-accent transition-colors"
                 >
-                  利用規約
+                  契約条項
                 </a>
                 <a
                   href="#"
-                  className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
+                  className="text-sm text-foreground/50 hover:text-accent transition-colors"
+                  title="特定商取引法に基づく表記"
                 >
-                  特定商取引法に基づく表記
+                  取引表記
                 </a>
               </div>
             </div>
