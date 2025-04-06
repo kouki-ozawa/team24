@@ -21,10 +21,10 @@ export default function Footer() {
             {/* サービス説明 */}
             <div className="col-span-1 md:col-span-2">
               <h3 className="text-lg font-bold text-gray-900 mb-4">
-                SkillMatch
+                ProjectYAKUZA
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed">
-                SkillMatchは、エンジニアのスキルを可視化し、
+                ProjectYAKUZAは、エンジニアのスキルを可視化し、
                 キャリア開発をサポートするプラットフォームです。
                 適切なスキル診断と、継続的な成長をサポートします。
               </p>
@@ -71,10 +71,10 @@ export default function Footer() {
               <ul className="space-y-3">
                 <li>
                   <a
-                    href="mailto:support@skillmatch.example.com"
+                    href="mailto:support@ProjectYAKUZA.example.com"
                     className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
                   >
-                    support@skillmatch.example.com
+                    support@ProjectYAKUZA.example.com
                   </a>
                 </li>
                 <li>
@@ -119,7 +119,7 @@ export default function Footer() {
           <div className="border-t border-gray-200 mt-8 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-sm text-gray-500">
-                &copy; {currentYear} SkillMatch. All rights reserved.
+                &copy; {currentYear} ProjectYAKUZA. All rights reserved.
               </p>
               <div className="flex space-x-6 mt-4 md:mt-0">
                 <a

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Skill Match App",
-  description: "あなたのスキルを診断します",
+  title: "ProjectYAKUZA",
+  description: "チームビルディング、それは現代のシノギ",
 };
 
 

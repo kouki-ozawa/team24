@@ -151,7 +151,7 @@ export default function Sidebar() {
         <div className={`p-4 border-b flex ${isCollapsed ? "md:justify-center" : "justify-between"} items-center`}>
           {(!isCollapsed || isMobile) && (
             <Link href="/dashboard" onClick={handleNavigation} className="text-xl font-bold text-gray-900">
-              SkillMatch
+              ProjectYAKUZA
             </Link>
           )}
           <Button variant="ghost" size="icon" onClick={toggleCollapse} className="flex-shrink-0 hidden md:flex">
