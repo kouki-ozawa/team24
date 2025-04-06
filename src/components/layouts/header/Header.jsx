@@ -61,7 +61,7 @@ export default function Header() {
   // 動的なパスの処理
   const getPageTitle = () => {
     if (pathname.startsWith("/projects/create")) return "プロジェクト作成"
-    return pageTitles[pathname] || "SkillMatch"
+    return pageTitles[pathname] || "ProjectYAKUZA"
   }
 
   if (isLoading) {
