@@ -26,6 +26,11 @@ export default function ProjectsPage() {
   const [activeTab, setActiveTab] = useState(ProgressTab.ALL);
 
   useEffect(() => {
+    // URLパラメータからページ番号を取得
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = parseInt(urlParams.get('page')) || 1;
+    setCurrentPage(page);
+
     const fetchProjects = async () => {
       try {
         const response = await fetch(
@@ -58,33 +63,20 @@ export default function ProjectsPage() {
     fetchProjects();
   }, []);
 
-  const filterProjectsByProgress = (projects) => {
-    switch (activeTab) {
-      case ProgressTab.COMPLETED:
-        return projects.filter((project) => project.status === "completed");
-      case ProgressTab.YELLOW:
-        return projects.filter(
-          (project) =>
-            project.status === "active" &&
-            project.progress >= 30 &&
-            project.progress < 70
-        );
-      case ProgressTab.RED:
-        return projects.filter(
-          (project) =>
-            project.status === "active" &&
-            (project.progress == null || project.progress < 30)
-        );
-      default:
-        return projects;
-    }
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    router.push(`/projects?page=${page}`, { scroll: false });
   };
 
-  const filteredProjects = filterProjectsByProgress(projects);
-  const paginatedProjects = filteredProjects.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const paginatedProjects = projects
+    .filter((project) => {
+      if (activeTab === ProgressTab.ALL) return true;
+      if (activeTab === ProgressTab.COMPLETED) return project.status === "completed";
+      if (activeTab === ProgressTab.YELLOW) return project.status === "active";
+      if (activeTab === ProgressTab.RED) return project.status === "not_started";
+      return true;
+    })
+    .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   if (loading) {
     return (
@@ -181,7 +173,7 @@ export default function ProjectsPage() {
             }`}
             onClick={() => {
               if (project.id) {
-                router.push(`/projects/${project.id}`);
+                router.push(`/projects/${project.id}?page=${currentPage}`, { scroll: true });
               }
             }}
           >
@@ -307,7 +299,7 @@ export default function ProjectsPage() {
       {/* ページネーション */}
       <div className="mt-8 flex justify-center space-x-2">
         <Button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
           disabled={currentPage === 1}
           className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 w-10 h-10 flex items-center justify-center"
         >
@@ -317,9 +309,7 @@ export default function ProjectsPage() {
           {currentPage} / {totalPages}
         </span>
         <Button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
+          onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
           disabled={currentPage === totalPages}
           className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 w-10 h-10 flex items-center justify-center"
         >

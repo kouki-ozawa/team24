@@ -27,6 +27,12 @@ export default function ProjectDetailPage({ params }) {
 
   const projectId = use(params).id;
 
+  const handleBack = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('page') || '1';
+    router.push(`/projects?page=${page}`, { scroll: true });
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -60,6 +66,15 @@ export default function ProjectDetailPage({ params }) {
 
     fetchData();
   }, [projectId]);
+
+  // プロジェクト一覧から遷移してきた際のページ番号を保持
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('page');
+    if (page) {
+      router.replace(`/projects/${projectId}?page=${page}`, { scroll: true });
+    }
+  }, [projectId, router]);
 
   const handleTasksChange = (newTasks) => {
     setTasks(newTasks);
@@ -109,7 +124,7 @@ export default function ProjectDetailPage({ params }) {
         <div className="text-center">
           <p className="text-red-600">{error}</p>
           <Button
-            onClick={() => router.push("/projects")}
+            onClick={handleBack}
             className="mt-4 bg-blue-600 hover:bg-blue-700"
           >
             プロジェクト一覧に戻る
@@ -125,7 +140,7 @@ export default function ProjectDetailPage({ params }) {
         <div className="text-center">
           <p className="text-gray-600">プロジェクトが見つかりません</p>
           <Button
-            onClick={() => router.push("/projects")}
+            onClick={handleBack}
             className="mt-4 bg-blue-600 hover:bg-blue-700"
           >
             プロジェクト一覧に戻る
@@ -143,7 +158,7 @@ export default function ProjectDetailPage({ params }) {
             variant="outline"
             size="sm"
             className="group flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-l-none rounded-r-full pl-4 pr-6 border-l-0 transition-all duration-200 ease-in-out hover:shadow-md border-gray-300 shadow-sm"
-            onClick={() => router.push("/projects")}
+            onClick={handleBack}
           >
             <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
             <span className="font-medium tracking-wide">一覧に戻る</span>
