@@ -113,7 +113,7 @@ export const ProjectMessageList = ({ projectId }) => {
       {loading ? (
         <p className="text-gray-500">読み込み中...</p>
       ) : error ? (
-        <p className="text-red-500">エラー: {error}</p>
+        <p className="text-gray-400">No Message</p>
       ) : messages.length === 0 ? (
         <p className="text-gray-400">No Message</p>
       ) : (
@@ -186,20 +186,22 @@ export const ProjectMessageList = ({ projectId }) => {
 
       {/* 新規メッセージ送信 */}
       <form onSubmit={handleSubmit} className="space-y-2 pt-4 border-t mt-6">
-        <textarea
-          className="w-full p-3 border border-gray-300 rounded-md resize-none"
-          rows={3}
-          placeholder="メッセージを入力..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-        />
-        <button
-          type="submit"
-          disabled={sending}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-        >
-          {sending ? "送信中..." : "送信"}
-        </button>
+        <div className="relative">
+          <textarea
+            className="w-full p-3 border border-gray-300 rounded-md resize-none pr-24"
+            rows={3}
+            placeholder="メッセージを入力"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+          />
+          <button
+            type="submit"
+            disabled={sending}
+            className="absolute bottom-3 right-3 bg-blue-600 text-white px-4 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 text-sm"
+          >
+            {sending ? "送信中..." : "送信"}
+          </button>
+        </div>
       </form>
     </div>
   );

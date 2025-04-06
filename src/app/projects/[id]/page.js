@@ -9,6 +9,15 @@ import { use } from "react";
 import { ProjectMessageList } from "@/components/Project/ProjectMessage";
 import { ProjectTaskList } from "@/components/Project/ProjectTask";
 
+const COLORS = [
+  { name: "青", value: "#3B82F6" },
+  { name: "緑", value: "#10B981" },
+  { name: "黄", value: "#F59E0B" },
+  { name: "赤", value: "#EF4444" },
+  { name: "紫", value: "#8B5CF6" },
+  { name: "ピンク", value: "#EC4899" },
+];
+
 export default function ProjectDetailPage({ params }) {
   const router = useRouter();
   const [project, setProject] = useState(null);
@@ -17,6 +26,12 @@ export default function ProjectDetailPage({ params }) {
   const [error, setError] = useState(null);
 
   const projectId = use(params).id;
+
+  const handleBack = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('page') || '1';
+    router.push(`/projects?page=${page}`, { scroll: true });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,12 +43,21 @@ export default function ProjectDetailPage({ params }) {
         setProject(projectData);
 
         // タスクデータの取得
-        const tasksResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/project/${projectId}`);
-        if (!tasksResponse.ok) throw new Error("タスクの取得に失敗しました");
-        const tasksData = await tasksResponse.json();
-        setTasks(tasksData);
+        try {
+          const tasksResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/project/${projectId}`);
+          if (tasksResponse.ok) {
+            const tasksData = await tasksResponse.json();
+            setTasks(tasksData);
+          } else {
+            console.warn("タスクの取得に失敗しました。空のタスクリストを設定します。");
+            setTasks([]);
+          }
+        } catch (tasksErr) {
+          console.warn("タスクの取得中にエラーが発生しました:", tasksErr);
+          setTasks([]);
+        }
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("Error fetching project data:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -43,8 +67,44 @@ export default function ProjectDetailPage({ params }) {
     fetchData();
   }, [projectId]);
 
+  // プロジェクト一覧から遷移してきた際のページ番号を保持
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('page');
+    if (page) {
+      router.replace(`/projects/${projectId}?page=${page}`, { scroll: true });
+    }
+  }, [projectId, router]);
+
   const handleTasksChange = (newTasks) => {
     setTasks(newTasks);
+  };
+
+  const handleColorChange = async (newColor) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/project/${projectId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...project,
+          color: newColor
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error("Error response:", errorData);
+        throw new Error("カラーの更新に失敗しました");
+      }
+      
+      const updatedProject = await response.json();
+      setProject(updatedProject);
+    } catch (err) {
+      console.error("Error updating color:", err);
+      alert("カラーの更新に失敗しました。もう一度お試しください。");
+    }
   };
 
   if (loading) {
@@ -64,7 +124,7 @@ export default function ProjectDetailPage({ params }) {
         <div className="text-center">
           <p className="text-red-600">{error}</p>
           <Button
-            onClick={() => router.push("/projects")}
+            onClick={handleBack}
             className="mt-4 bg-blue-600 hover:bg-blue-700"
           >
             プロジェクト一覧に戻る
@@ -80,7 +140,7 @@ export default function ProjectDetailPage({ params }) {
         <div className="text-center">
           <p className="text-gray-600">プロジェクトが見つかりません</p>
           <Button
-            onClick={() => router.push("/projects")}
+            onClick={handleBack}
             className="mt-4 bg-blue-600 hover:bg-blue-700"
           >
             プロジェクト一覧に戻る
@@ -98,7 +158,7 @@ export default function ProjectDetailPage({ params }) {
             variant="outline"
             size="sm"
             className="group flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-l-none rounded-r-full pl-4 pr-6 border-l-0 transition-all duration-200 ease-in-out hover:shadow-md border-gray-300 shadow-sm"
-            onClick={() => router.push("/projects")}
+            onClick={handleBack}
           >
             <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
             <span className="font-medium tracking-wide">一覧に戻る</span>
@@ -120,6 +180,27 @@ export default function ProjectDetailPage({ params }) {
                 プロジェクト情報
               </h2>
               <div className="space-y-8">
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-2">
+                    テーマカラー
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {COLORS.map((color) => (
+                      <button
+                        key={color.value}
+                        type="button"
+                        onClick={() => handleColorChange(color.value)}
+                        className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${
+                          project.color === color.value
+                            ? "border-gray-900 scale-110"
+                            : "border-gray-200 hover:border-gray-400"
+                        }`}
+                        style={{ backgroundColor: color.value }}
+                        title={color.name}
+                      />
+                    ))}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-8">
                   <div>
                     <p className="text-sm font-medium text-gray-500 mb-2">

@@ -34,11 +34,20 @@ export default function NewProject() {
     description: "",
     start: "",
     deadline: "",
-    color: "#FFFFFF",
+    color: "#3B82F6",
     image: "string",
     document: "",
     reference: ""
   });
+
+  const COLORS = [
+    { name: "青", value: "#3B82F6" },
+    { name: "緑", value: "#10B981" },
+    { name: "黄", value: "#F59E0B" },
+    { name: "赤", value: "#EF4444" },
+    { name: "紫", value: "#8B5CF6" },
+    { name: "ピンク", value: "#EC4899" },
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,8 +59,14 @@ export default function NewProject() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...projectData,
-          color: "#FFFFFF" // デフォルトの色を設定
+          title: projectData.title,
+          description: projectData.description,
+          start: projectData.start,
+          deadline: projectData.deadline,
+          color: projectData.color,
+          image: projectData.image,
+          document: projectData.document,
+          reference: projectData.reference
         }),
       });
 
@@ -124,6 +139,28 @@ export default function NewProject() {
                 placeholder="プロジェクトの説明を入力"
                 required
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                テーマカラー
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {COLORS.map((color) => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    onClick={() => setProjectData({...projectData, color: color.value})}
+                    className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${
+                      projectData.color === color.value
+                        ? "border-gray-900 scale-110"
+                        : "border-gray-200 hover:border-gray-400"
+                    }`}
+                    style={{ backgroundColor: color.value }}
+                    title={color.name}
+                  />
+                ))}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

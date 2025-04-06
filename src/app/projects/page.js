@@ -26,6 +26,11 @@ export default function ProjectsPage() {
   const [activeTab, setActiveTab] = useState(ProgressTab.ALL);
 
   useEffect(() => {
+    // URLパラメータからページ番号を取得
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = parseInt(urlParams.get('page')) || 1;
+    setCurrentPage(page);
+
     const fetchProjects = async () => {
       try {
         const response = await fetch(
@@ -44,6 +49,7 @@ export default function ProjectsPage() {
           status: project.status || "active",
           progress: project.progress || 0,
           members: project.members || [],
+          color: project.color || null,
         }));
         setProjects(mappedProjects);
         setTotalPages(Math.ceil(mappedProjects.length / ITEMS_PER_PAGE));
@@ -57,33 +63,20 @@ export default function ProjectsPage() {
     fetchProjects();
   }, []);
 
-  const filterProjectsByProgress = (projects) => {
-    switch (activeTab) {
-      case ProgressTab.COMPLETED:
-        return projects.filter((project) => project.status === "completed");
-      case ProgressTab.YELLOW:
-        return projects.filter(
-          (project) =>
-            project.status === "active" &&
-            project.progress >= 30 &&
-            project.progress < 70
-        );
-      case ProgressTab.RED:
-        return projects.filter(
-          (project) =>
-            project.status === "active" &&
-            (project.progress == null || project.progress < 30)
-        );
-      default:
-        return projects;
-    }
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    router.push(`/projects?page=${page}`, { scroll: false });
   };
 
-  const filteredProjects = filterProjectsByProgress(projects);
-  const paginatedProjects = filteredProjects.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const paginatedProjects = projects
+    .filter((project) => {
+      if (activeTab === ProgressTab.ALL) return true;
+      if (activeTab === ProgressTab.COMPLETED) return project.status === "completed";
+      if (activeTab === ProgressTab.YELLOW) return project.status === "active";
+      if (activeTab === ProgressTab.RED) return project.status === "not_started";
+      return true;
+    })
+    .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   if (loading) {
     return (
@@ -180,32 +173,35 @@ export default function ProjectsPage() {
             }`}
             onClick={() => {
               if (project.id) {
-                router.push(`/projects/${project.id}`);
+                router.push(`/projects/${project.id}?page=${currentPage}`, { scroll: true });
               }
             }}
           >
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3
-                    className={`text-lg font-semibold ${
-                      !project.name ? "text-gray-400" : "text-gray-900"
-                    } cursor-default`}
-                  >
-                    {project.name || "No Project Name"}
-                  </h3>
-                </div>
-              </div>
-              <div className="absolute top-0 right-0 mt-2 mr-3">
-                <span
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm transition-all duration-300 cursor-default ${
-                    project.status === "completed"
-                      ? "bg-green-100/90 text-green-800 group-hover:bg-green-200/90 border border-green-200/50"
-                      : "bg-gray-100/90 text-gray-600 group-hover:bg-gray-200/90 border border-gray-200/50"
-                  }`}
+            <div className="absolute top-0 left-0 w-full h-2" style={{ 
+              background: project.color 
+                ? `linear-gradient(to right, ${project.color}, ${project.color})`
+                : 'linear-gradient(to right, #3B82F6, #3B82F6)'
+            }}></div>
+            <div className="absolute top-2 right-0 p-2">
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm transition-all duration-300 cursor-default ${
+                  project.status === "completed"
+                    ? "bg-green-100/90 text-green-800 group-hover:bg-green-200/90 border border-green-200/50"
+                    : "bg-gray-100/90 text-gray-600 group-hover:bg-gray-200/90 border border-gray-200/50"
+                }`}
+              >
+                {project.status === "active" ? "進行中" : "完了"}
+              </span>
+            </div>
+            <div className="pt-4 px-6">
+              <div className="mb-4">
+                <h3
+                  className={`text-lg font-semibold ${
+                    !project.name ? "text-gray-400" : "text-gray-900"
+                  } cursor-default`}
                 >
-                  {project.status === "active" ? "進行中" : "完了"}
-                </span>
+                  {project.name || "No Project Name"}
+                </h3>
               </div>
 
               <div className="mb-6">
@@ -303,7 +299,7 @@ export default function ProjectsPage() {
       {/* ページネーション */}
       <div className="mt-8 flex justify-center space-x-2">
         <Button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
           disabled={currentPage === 1}
           className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 w-10 h-10 flex items-center justify-center"
         >
@@ -313,9 +309,7 @@ export default function ProjectsPage() {
           {currentPage} / {totalPages}
         </span>
         <Button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
+          onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
           disabled={currentPage === totalPages}
           className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 w-10 h-10 flex items-center justify-center"
         >
